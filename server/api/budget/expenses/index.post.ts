@@ -1,0 +1,23 @@
+import { db, schema } from 'hub:db'
+
+export default defineEventHandler(async (event) => {
+  const body = await readBody(event)
+  const now = new Date()
+
+  const [result] = await db
+    .insert(schema.recurringEntries)
+    .values({
+      type: 'expense',
+      label: body.label,
+      amount: body.amount,
+      category: body.category,
+      dayOfMonth: body.dayOfMonth,
+      active: body.active ?? true,
+      notes: body.notes ?? null,
+      createdAt: now,
+      updatedAt: now
+    })
+    .returning()
+
+  return result
+})
