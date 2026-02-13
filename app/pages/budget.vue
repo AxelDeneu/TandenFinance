@@ -1,17 +1,16 @@
 <script setup lang="ts">
-const selectedTab = ref<'incomes' | 'expenses' | 'settings'>('incomes')
+import type { NavigationMenuItem } from '@nuxt/ui'
 
-const summaryRef = ref<{ refresh: () => void }>()
-
-function onUpdated() {
-  summaryRef.value?.refresh()
-}
-
-const tabs = [
-  { key: 'incomes' as const, label: 'Revenus', icon: 'i-lucide-trending-up' },
-  { key: 'expenses' as const, label: 'Depenses', icon: 'i-lucide-trending-down' },
-  { key: 'settings' as const, label: 'Parametres', icon: 'i-lucide-settings' }
-]
+const links = [[{
+  label: 'Configuration',
+  icon: 'i-lucide-settings',
+  to: '/budget',
+  exact: true
+}, {
+  label: 'Prévisionnel',
+  icon: 'i-lucide-calendar-range',
+  to: '/budget/previsionnel'
+}]] satisfies NavigationMenuItem[][]
 </script>
 
 <template>
@@ -21,43 +20,15 @@ const tabs = [
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
-
-        <template #right>
-          <div class="flex items-center gap-1">
-            <UButton
-              v-for="tab in tabs"
-              :key="tab.key"
-              :label="tab.label"
-              :icon="tab.icon"
-              :color="selectedTab === tab.key ? 'primary' : 'neutral'"
-              :variant="selectedTab === tab.key ? 'subtle' : 'ghost'"
-              @click="selectedTab = tab.key"
-            />
-          </div>
-        </template>
       </UDashboardNavbar>
+
+      <UDashboardToolbar>
+        <UNavigationMenu :items="links" highlight class="-mx-1 flex-1" />
+      </UDashboardToolbar>
     </template>
 
     <template #body>
-      <BudgetSummaryCards ref="summaryRef" />
-
-      <div class="mt-6">
-        <BudgetRecurringTable
-          v-if="selectedTab === 'incomes'"
-          type="income"
-          @updated="onUpdated"
-        />
-
-        <BudgetRecurringTable
-          v-if="selectedTab === 'expenses'"
-          type="expense"
-          @updated="onUpdated"
-        />
-
-        <BudgetSettingsCard
-          v-if="selectedTab === 'settings'"
-        />
-      </div>
+      <NuxtPage />
     </template>
   </UDashboardPanel>
 </template>

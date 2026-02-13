@@ -12,22 +12,6 @@ export interface User {
   location: string
 }
 
-export interface Mail {
-  id: number
-  unread?: boolean
-  from: User
-  subject: string
-  body: string
-  date: string
-}
-
-export interface Member {
-  name: string
-  username: string
-  role: 'member' | 'owner'
-  avatar: AvatarProps
-}
-
 export interface Stat {
   title: string
   icon: string
@@ -60,29 +44,56 @@ export interface Range {
 }
 
 // Budget types
-export type EntryType = 'income' | 'expense'
+export type EntryType = 'income' | 'expense' | 'envelope'
 
 export interface RecurringEntry {
   id: number
   type: EntryType
   label: string
   amount: number
-  category: string
-  dayOfMonth: number
+  category: string | null
+  dayOfMonth: number | null
   active: boolean
   notes: string | null
   createdAt: string
   updatedAt: string
 }
 
-export interface BudgetSummary {
-  totalIncome: number
-  totalExpenses: number
-  balance: number
-  incomeCount: number
-  expenseCount: number
+export interface MonthlyActual {
+  id: number
+  recurringEntryId: number
+  year: number
+  month: number
+  actualAmount: number
+  createdAt: string
+  updatedAt: string
 }
 
-export interface BudgetSettings {
-  salaryReferenceDay: number
+export interface EnvelopeExpense {
+  id: number
+  recurringEntryId: number
+  year: number
+  month: number
+  label: string
+  amount: number
+  createdAt: string
+  updatedAt: string
+}
+
+export interface ForecastEntry {
+  entry: RecurringEntry
+  actuals: Record<string, number | null>
+}
+
+export interface ForecastMonth {
+  year: number
+  month: number
+  label: string
+}
+
+export interface ForecastData {
+  months: ForecastMonth[]
+  incomes: ForecastEntry[]
+  expenses: ForecastEntry[]
+  envelopes: ForecastEntry[]
 }

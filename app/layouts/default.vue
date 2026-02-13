@@ -5,7 +5,7 @@ const toast = useToast()
 
 const open = ref(false)
 
-const links = [[{
+const links = [{
   label: 'Accueil',
   icon: 'i-lucide-house',
   to: '/',
@@ -16,72 +16,35 @@ const links = [[{
   label: 'Budget',
   icon: 'i-lucide-wallet',
   to: '/budget',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Messages',
-  icon: 'i-lucide-inbox',
-  to: '/inbox',
-  badge: '4',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Clients',
-  icon: 'i-lucide-users',
-  to: '/customers',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Parametres',
-  to: '/settings',
-  icon: 'i-lucide-settings',
   defaultOpen: true,
   type: 'trigger',
   children: [{
-    label: 'General',
-    to: '/settings',
+    label: 'Configuration',
+    to: '/budget',
     exact: true,
     onSelect: () => {
       open.value = false
     }
   }, {
-    label: 'Membres',
-    to: '/settings/members',
-    onSelect: () => {
-      open.value = false
-    }
-  }, {
-    label: 'Notifications',
-    to: '/settings/notifications',
-    onSelect: () => {
-      open.value = false
-    }
-  }, {
-    label: 'Securite',
-    to: '/settings/security',
+    label: 'Prévisionnel',
+    to: '/budget/previsionnel',
     onSelect: () => {
       open.value = false
     }
   }]
-}], [{
-  label: 'Retours',
-  icon: 'i-lucide-message-circle',
-  to: 'https://github.com/nuxt-ui-templates/dashboard',
-  target: '_blank'
 }, {
-  label: 'Aide',
-  icon: 'i-lucide-info',
-  to: 'https://github.com/nuxt-ui-templates/dashboard',
-  target: '_blank'
-}]] satisfies NavigationMenuItem[][]
+  label: 'Paramètres',
+  to: '/settings',
+  icon: 'i-lucide-settings',
+  onSelect: () => {
+    open.value = false
+  }
+}] satisfies NavigationMenuItem[]
 
 const groups = computed(() => [{
   id: 'links',
-  label: 'Aller a',
-  items: links.flat()
+  label: 'Aller à',
+  items: links
 }])
 
 onMounted(async () => {
@@ -91,7 +54,7 @@ onMounted(async () => {
   }
 
   toast.add({
-    title: 'Nous utilisons des cookies pour ameliorer votre experience.',
+    title: 'Nous utilisons des cookies pour améliorer votre expérience.',
     duration: 0,
     close: false,
     actions: [{
@@ -140,18 +103,10 @@ onMounted(async () => {
 
         <UNavigationMenu
           :collapsed="collapsed"
-          :items="links[0]"
+          :items="links"
           orientation="vertical"
           tooltip
           popover
-        />
-
-        <UNavigationMenu
-          :collapsed="collapsed"
-          :items="links[1]"
-          orientation="vertical"
-          tooltip
-          class="mt-auto"
         />
       </template>
 

@@ -1,5 +1,6 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
+
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
@@ -10,6 +11,12 @@ export default defineNuxtConfig({
     '@nuxthub/core',
     '@nuxtjs/google-fonts'
   ],
+  components: {
+    dirs: [{
+      path: '~/components',
+      extensions: ['vue']
+    }]
+  },
 
   devtools: {
     enabled: true
@@ -27,6 +34,12 @@ export default defineNuxtConfig({
 
   hub: {
     db: 'sqlite'
+  },
+
+  typescript: {
+    tsConfig: {
+      exclude: ['../app/**/*.spec.ts']
+    }
   },
 
   eslint: {

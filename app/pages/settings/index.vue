@@ -24,8 +24,8 @@ const profile = reactive<Partial<ProfileSchema>>({
 const toast = useToast()
 async function onSubmit(event: FormSubmitEvent<ProfileSchema>) {
   toast.add({
-    title: 'Succes',
-    description: 'Vos parametres ont ete mis a jour.',
+    title: 'Succès',
+    description: 'Vos paramètres ont été mis à jour.',
     icon: 'i-lucide-check',
     color: 'success'
   })
@@ -56,7 +56,7 @@ function onFileClick() {
   >
     <UPageCard
       title="Profil"
-      description="Ces informations seront affichees publiquement."
+      description="Ces informations seront affichées publiquement."
       variant="naked"
       orientation="horizontal"
       class="mb-4"
@@ -74,7 +74,7 @@ function onFileClick() {
       <UFormField
         name="name"
         label="Nom"
-        description="Apparaitra sur les recus, factures et autres communications."
+        description="Apparaîtra sur les reçus, factures et autres communications."
         required
         class="flex max-sm:flex-col justify-between items-start gap-4"
       >
@@ -87,7 +87,7 @@ function onFileClick() {
       <UFormField
         name="email"
         label="Email"
-        description="Utilise pour la connexion et les notifications."
+        description="Utilisé pour la connexion et les notifications."
         required
         class="flex max-sm:flex-col justify-between items-start gap-4"
       >
