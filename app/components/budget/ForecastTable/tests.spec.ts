@@ -32,6 +32,7 @@ vi.stubGlobal('formatEuro', (v: number) => `${v.toFixed(2)} \u20AC`)
 vi.stubGlobal('INCOME_CATEGORY_COLORS', { Salaire: 'success' })
 vi.stubGlobal('EXPENSE_CATEGORY_COLORS', { Logement: 'warning' })
 vi.stubGlobal('ENVELOPE_COLOR', 'warning')
+vi.stubGlobal('useRoute', () => ({ query: {} }))
 vi.stubGlobal('useFetch', () => ({
   data: ref(mockData),
   status: ref('idle'),

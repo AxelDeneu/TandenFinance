@@ -97,3 +97,17 @@ export interface ForecastData {
   expenses: ForecastEntry[]
   envelopes: ForecastEntry[]
 }
+
+export interface MonthlySummary {
+  year: number
+  month: number
+  label: string
+  incomePlanned: number
+  incomeEffective: number
+  expensePlanned: number
+  expenseEffective: number
+  envelopePlanned: number
+  envelopeEffective: number
+  remaining: number
+  remainingPlanned: number
+}

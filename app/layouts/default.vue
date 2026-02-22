@@ -31,6 +31,12 @@ const links = [{
     onSelect: () => {
       open.value = false
     }
+  }, {
+    label: 'Historique',
+    to: '/budget/historique',
+    onSelect: () => {
+      open.value = false
+    }
   }]
 }, {
   label: 'Paramètres',

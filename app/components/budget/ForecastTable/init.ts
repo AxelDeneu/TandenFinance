@@ -5,8 +5,9 @@ import type { ForecastData, ForecastEntry, EntryType } from '~/types'
 
 export function initBudgetForecastTable() {
   const now = new Date()
-  const selectedYear = ref(now.getFullYear())
-  const selectedMonth = ref(now.getMonth() + 1)
+  const route = useRoute()
+  const selectedYear = ref(Number(route.query.year) || now.getFullYear())
+  const selectedMonth = ref(Number(route.query.month) || (now.getMonth() + 1))
 
   const selectedMonthLabel = computed(() => {
     const date = new Date(selectedYear.value, selectedMonth.value - 1, 1)

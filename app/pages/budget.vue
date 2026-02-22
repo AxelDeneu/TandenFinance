@@ -10,6 +10,10 @@ const links = [[{
   label: 'Prévisionnel',
   icon: 'i-lucide-calendar-range',
   to: '/budget/previsionnel'
+}, {
+  label: 'Historique',
+  icon: 'i-lucide-history',
+  to: '/budget/historique'
 }]] satisfies NavigationMenuItem[][]
 </script>
 
