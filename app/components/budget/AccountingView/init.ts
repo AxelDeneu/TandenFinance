@@ -4,33 +4,7 @@ import { UBadge, UButton } from '#components'
 import type { Transaction } from '~/types'
 
 export function initBudgetAccountingView() {
-  const now = new Date()
-  const route = useRoute()
-  const selectedYear = ref(Number(route.query.year) || now.getFullYear())
-  const selectedMonth = ref(Number(route.query.month) || (now.getMonth() + 1))
-
-  const selectedMonthLabel = computed(() => {
-    const date = new Date(selectedYear.value, selectedMonth.value - 1, 1)
-    return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date)
-  })
-
-  function previousMonth() {
-    if (selectedMonth.value === 1) {
-      selectedMonth.value = 12
-      selectedYear.value--
-    } else {
-      selectedMonth.value--
-    }
-  }
-
-  function nextMonth() {
-    if (selectedMonth.value === 12) {
-      selectedMonth.value = 1
-      selectedYear.value++
-    } else {
-      selectedMonth.value++
-    }
-  }
+  const { selectedYear, selectedMonth, selectedMonthLabel, previousMonth, nextMonth } = useMonthNavigation()
 
   const { data: transactions, status, refresh } = useFetch<Transaction[]>('/api/budget/transactions', {
     lazy: true,
@@ -138,22 +112,20 @@ export function initBudgetAccountingView() {
   }
 
   // Category colors from recurring entries
-  function getCategoryBadge(transaction: Transaction) {
+  function getCategoryBadge(transaction: Transaction): { label: string, color: UiColor } {
     const entry = transaction.recurringEntry
     if (!entry) {
-      return { label: 'Non catégorisé', color: 'neutral' as const }
+      return { label: 'Non catégorisé', color: 'neutral' }
     }
 
-    let color: string = 'neutral'
-    if (entry.type === 'income') {
-      color = INCOME_CATEGORY_COLORS[entry.category ?? ''] || 'success'
-    } else if (entry.type === 'expense') {
-      color = EXPENSE_CATEGORY_COLORS[entry.category ?? ''] || 'error'
+    let color: UiColor = 'neutral'
+    if (entry.type === 'income' || entry.type === 'expense') {
+      color = getCategoryColor(entry.category ?? '', entry.type)
     } else if (entry.type === 'envelope') {
-      color = ENVELOPE_COLOR
+      color = ENVELOPE_COLOR as UiColor
     }
 
-    return { label: entry.label, color: color as 'neutral' | 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' }
+    return { label: entry.label, color }
   }
 
   // Table columns

@@ -33,7 +33,14 @@ export const EXPENSE_CATEGORIES = [
   'Divers'
 ] as const
 
-export const EXPENSE_CATEGORY_COLORS: Record<string, string> = {
+export type UiColor = 'neutral' | 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info'
+
+export function getCategoryColor(category: string, type: 'income' | 'expense'): UiColor {
+  if (type === 'income') return INCOME_CATEGORY_COLORS[category] ?? 'neutral'
+  return EXPENSE_CATEGORY_COLORS[category] ?? 'neutral'
+}
+
+export const EXPENSE_CATEGORY_COLORS: Record<string, UiColor> = {
   'Loyer': 'warning',
   'Charges': 'warning',
   'Énergie': 'warning',
@@ -57,7 +64,7 @@ export const EXPENSE_CATEGORY_COLORS: Record<string, string> = {
   'Divers': 'neutral'
 }
 
-export const INCOME_CATEGORY_COLORS: Record<string, string> = {
+export const INCOME_CATEGORY_COLORS: Record<string, UiColor> = {
   'Salaire': 'success',
   'Freelance': 'info',
   'Aides sociales': 'warning',

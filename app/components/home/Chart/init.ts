@@ -1,5 +1,5 @@
 import type { Ref } from 'vue'
-import type { ForecastData, ForecastEntry } from '~/types'
+import type { ForecastData } from '~/types'
 
 export type ChartDataRecord = {
   month: string
@@ -9,32 +9,6 @@ export type ChartDataRecord = {
 
 interface Context {
   cardRef: Ref<HTMLElement | null>
-}
-
-function computeEffectiveTotal(entries: ForecastEntry[], monthKey: string): number {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += actual
-    } else {
-      total += fe.entry.amount
-    }
-  }
-  return total
-}
-
-function computeEnvelopeEffectiveTotal(entries: ForecastEntry[], monthKey: string): number {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += Math.max(actual, fe.entry.amount)
-    } else {
-      total += fe.entry.amount
-    }
-  }
-  return total
 }
 
 export function initHomeChart(ctx: Context) {

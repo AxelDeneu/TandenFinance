@@ -156,7 +156,7 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
       filterFn: 'equals',
       cell: ({ row }) => {
         if (!row.original.category) return h('span', { class: 'text-muted' }, '-')
-        const color = (categoryColors.value[row.original.category] || 'neutral') as 'neutral' | 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info'
+        const color: UiColor = categoryColors.value[row.original.category] || 'neutral'
 
         return h(UBadge, { variant: 'subtle', color }, () => row.original.category)
       }

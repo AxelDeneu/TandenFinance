@@ -1,34 +1,13 @@
-import { eq, and } from 'drizzle-orm'
+import { eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 
-export default defineEventHandler(async (event) => {
-  try {
-    const id = Number(getRouterParam(event, 'id'))
-    if (Number.isNaN(id) || id <= 0) {
-      throw createError({ statusCode: 400, message: 'ID invalide' })
-    }
+export default defineApiHandler(async (event) => {
+  const id = requireRouteId(event)
+  await requireRecurringEntry(id, 'expense')
 
-    const [existing] = await db
-      .select()
-      .from(schema.recurringEntries)
-      .where(and(
-        eq(schema.recurringEntries.id, id),
-        eq(schema.recurringEntries.type, 'expense')
-      ))
+  await db
+    .delete(schema.recurringEntries)
+    .where(eq(schema.recurringEntries.id, id))
 
-    if (!existing) {
-      throw createError({ statusCode: 404, message: 'Depense non trouvee' })
-    }
-
-    await db
-      .delete(schema.recurringEntries)
-      .where(eq(schema.recurringEntries.id, id))
-
-    return { success: true, id }
-  } catch (error: unknown) {
-    if (error && typeof error === 'object' && 'statusCode' in error) {
-      throw error
-    }
-    throw createError({ statusCode: 500, message: 'Erreur serveur' })
-  }
+  return { success: true, id }
 })

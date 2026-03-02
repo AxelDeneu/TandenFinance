@@ -33,8 +33,8 @@ const { items } = initThemeMenu({ props })
         <span
           class="rounded-full ring ring-bg bg-(--chip-light) dark:bg-(--chip-dark) size-2"
           :style="{
-            '--chip-light': `var(--color-${(item as any).chip}-500)`,
-            '--chip-dark': `var(--color-${(item as any).chip}-400)`
+            '--chip-light': `var(--color-${(item as { chip: string }).chip}-500)`,
+            '--chip-dark': `var(--color-${(item as { chip: string }).chip}-400)`
           }"
         />
       </div>

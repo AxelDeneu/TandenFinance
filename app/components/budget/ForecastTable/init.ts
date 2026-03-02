@@ -4,17 +4,7 @@ import { UButton, UBadge } from '#components'
 import type { ForecastData, ForecastEntry, EntryType } from '~/types'
 
 export function initBudgetForecastTable() {
-  const now = new Date()
-  const route = useRoute()
-  const selectedYear = ref(Number(route.query.year) || now.getFullYear())
-  const selectedMonth = ref(Number(route.query.month) || (now.getMonth() + 1))
-
-  const selectedMonthLabel = computed(() => {
-    const date = new Date(selectedYear.value, selectedMonth.value - 1, 1)
-    return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date)
-  })
-
-  const monthKey = computed(() => `${selectedYear.value}-${selectedMonth.value}`)
+  const { selectedYear, selectedMonth, selectedMonthLabel, monthKey, previousMonth, nextMonth } = useMonthNavigation()
 
   const { data, status, refresh } = useFetch<ForecastData>('/api/budget/forecast', {
     lazy: true,
@@ -31,25 +21,7 @@ export function initBudgetForecastTable() {
     })
   })
 
-  function previousMonth() {
-    if (selectedMonth.value === 1) {
-      selectedMonth.value = 12
-      selectedYear.value--
-    } else {
-      selectedMonth.value--
-    }
-  }
-
-  function nextMonth() {
-    if (selectedMonth.value === 12) {
-      selectedMonth.value = 1
-      selectedYear.value++
-    } else {
-      selectedMonth.value++
-    }
-  }
-
-  function getCategoryColorMap(type: EntryType): Record<string, string> {
+  function getCategoryColorMap(type: EntryType): Record<string, UiColor> {
     if (type === 'income') return INCOME_CATEGORY_COLORS
     if (type === 'expense') return EXPENSE_CATEGORY_COLORS
     return {}
@@ -93,11 +65,11 @@ export function initBudgetForecastTable() {
           if (type === 'envelope') {
             return h(UBadge, {
               variant: 'subtle',
-              color: ENVELOPE_COLOR as 'warning'
+              color: ENVELOPE_COLOR as UiColor
             }, () => category)
           }
 
-          const color = (colorMap[category] || 'neutral') as 'neutral' | 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info'
+          const color: UiColor = colorMap[category] || 'neutral'
           return h(UBadge, { variant: 'subtle', color }, () => category)
         }
       },

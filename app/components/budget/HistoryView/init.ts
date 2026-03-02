@@ -1,33 +1,7 @@
 import { h } from 'vue'
 import type { Ref } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
-import type { ForecastData, ForecastEntry, MonthlySummary } from '~/types'
-
-function computeEffectiveTotal(entries: ForecastEntry[], monthKey: string): number {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += actual
-    } else {
-      total += fe.entry.amount
-    }
-  }
-  return total
-}
-
-function computeEnvelopeEffectiveTotal(entries: ForecastEntry[], monthKey: string): number {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += Math.max(actual, fe.entry.amount)
-    } else {
-      total += fe.entry.amount
-    }
-  }
-  return total
-}
+import type { ForecastData, MonthlySummary } from '~/types'
 
 export type HistoryChartRecord = {
   month: string
@@ -102,7 +76,7 @@ export function initBudgetHistoryView(ctx: Context) {
   })
 
   const chartData = computed<HistoryChartRecord[]>(() => {
-    return monthlySummaries.value.map((s) => ({
+    return monthlySummaries.value.map(s => ({
       month: s.label,
       income: s.incomeEffective,
       expenses: s.expenseEffective + s.envelopeEffective

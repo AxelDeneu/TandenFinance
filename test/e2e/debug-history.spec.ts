@@ -5,7 +5,7 @@ test('debug history - direct load', async ({ page, request }) => {
   await seedTestData(request)
 
   const apiRequests: string[] = []
-  page.on('request', req => {
+  page.on('request', (req) => {
     if (req.url().includes('/api/budget')) apiRequests.push(`${req.method()} ${req.url()}`)
   })
 
@@ -32,7 +32,7 @@ test('debug history - client navigation', async ({ page, request }) => {
   await seedTestData(request)
 
   const apiRequests: string[] = []
-  page.on('request', req => {
+  page.on('request', (req) => {
     if (req.url().includes('/api/budget')) apiRequests.push(`${req.method()} ${req.url()}`)
   })
 

@@ -1,4 +1,4 @@
-import type { ForecastData, ForecastEntry } from '~/types'
+import type { ForecastData } from '~/types'
 
 export interface HomeStat {
   title: string
@@ -14,32 +14,6 @@ export const leadingClasses: Record<string, string> = {
   warning: 'p-2.5 rounded-full bg-warning/10 ring ring-inset ring-warning/25 flex-col'
 }
 
-export function computeEffectiveTotal(entries: ForecastEntry[], monthKey: string): number {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += actual
-    } else {
-      total += fe.entry.amount
-    }
-  }
-  return total
-}
-
-export function computeEnvelopeEffectiveTotal(entries: ForecastEntry[], monthKey: string): number {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += Math.max(actual, fe.entry.amount)
-    } else {
-      total += fe.entry.amount
-    }
-  }
-  return total
-}
-
 export async function initHomeStats() {
   const now = new Date()
   const year = now.getFullYear()
@@ -48,8 +22,8 @@ export async function initHomeStats() {
   const { data: forecast } = await useAsyncData<ForecastData>('home-stats-forecast', () =>
     $fetch('/api/budget/forecast', {
       query: { year, month, months: 1 }
-    })
-  , {
+    }),
+  {
     default: () => ({
       months: [],
       incomes: [],

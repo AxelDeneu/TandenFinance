@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import type { NavigationMenuItem } from '@nuxt/ui'
+import type { Transaction } from '~/types'
 
+const router = useRouter()
 const toast = useToast()
 
 const open = ref(false)
@@ -59,11 +61,49 @@ const links = [{
   }]
 }] satisfies NavigationMenuItem[]
 
-const groups = computed(() => [{
-  id: 'links',
-  label: 'Aller à',
-  items: links
-}])
+const searchTerm = ref('')
+
+const { data: searchResults, status: searchStatus } = useFetch<Transaction[]>('/api/budget/transactions/search', {
+  query: { q: searchTerm },
+  lazy: true,
+  default: () => []
+})
+
+interface SearchGroup {
+  id: string
+  label: string
+  items: { label: string, suffix?: string, icon?: string, to?: string, onSelect?: () => void, type?: string, defaultOpen?: boolean, children?: { label: string, to?: string, exact?: boolean, onSelect?: () => void }[] }[]
+}
+
+const groups = computed<SearchGroup[]>(() => {
+  const g: SearchGroup[] = [{
+    id: 'links',
+    label: 'Aller à',
+    items: links
+  }]
+
+  if (searchTerm.value.length >= 2) {
+    g.unshift({
+      id: 'transactions',
+      label: 'Transactions',
+      items: (searchResults.value ?? []).map((tx) => {
+        const amount = new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(tx.amount)
+        const dateLabel = new Date(tx.date).toLocaleDateString('fr-FR', { day: 'numeric', month: 'short', year: 'numeric' })
+        return {
+          label: tx.label,
+          suffix: `${amount} · ${dateLabel}`,
+          icon: tx.type === 'income' ? 'i-lucide-arrow-down-left' : 'i-lucide-arrow-up-right',
+          onSelect: () => {
+            const [year, month] = tx.date.split('-')
+            router.push(`/budget/comptabilite?year=${year}&month=${Number(month)}`)
+          }
+        }
+      })
+    })
+  }
+
+  return g
+})
 
 onMounted(async () => {
   const cookie = useCookie('cookie-consent')
@@ -122,7 +162,12 @@ onMounted(async () => {
       </template>
     </UDashboardSidebar>
 
-    <UDashboardSearch :groups="groups" />
+    <UDashboardSearch
+      v-model:search-term="searchTerm"
+      :groups="groups"
+      :loading="searchStatus === 'pending'"
+      :fuse="{ resultLimit: 20 }"
+    />
 
     <slot />
 

@@ -42,7 +42,39 @@ vi.stubGlobal('formatEuro', (value: number) => {
 
 vi.stubGlobal('$fetch', async () => mockForecastData)
 
-const { initHomeStats, computeEffectiveTotal, computeEnvelopeEffectiveTotal } = await import('./init')
+// Stub composable auto-imports
+function _computeEffectiveTotal(entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string): number {
+  let total = 0
+  for (const fe of entries) {
+    const actual = fe.actuals[monthKey]
+    if (actual !== null && actual !== undefined) {
+      total += actual
+    } else {
+      total += fe.entry.amount
+    }
+  }
+  return total
+}
+
+function _computeEnvelopeEffectiveTotal(entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string): number {
+  let total = 0
+  for (const fe of entries) {
+    const actual = fe.actuals[monthKey]
+    if (actual !== null && actual !== undefined) {
+      total += Math.max(actual, fe.entry.amount)
+    } else {
+      total += fe.entry.amount
+    }
+  }
+  return total
+}
+
+vi.stubGlobal('computeEffectiveTotal', _computeEffectiveTotal)
+vi.stubGlobal('computeEnvelopeEffectiveTotal', _computeEnvelopeEffectiveTotal)
+
+const { initHomeStats } = await import('./init')
+const computeEffectiveTotal = _computeEffectiveTotal
+const computeEnvelopeEffectiveTotal = _computeEnvelopeEffectiveTotal
 
 describe('initHomeStats', () => {
   it('should return stats and leadingClasses', async () => {

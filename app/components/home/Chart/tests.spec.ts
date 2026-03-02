@@ -41,6 +41,30 @@ vi.stubGlobal('useFetch', (_url: string, opts?: { default?: () => ForecastData }
 vi.stubGlobal('formatEuro', (value: number) => {
   return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value)
 })
+vi.stubGlobal('computeEffectiveTotal', (entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string) => {
+  let total = 0
+  for (const fe of entries) {
+    const actual = fe.actuals[monthKey]
+    if (actual !== null && actual !== undefined) {
+      total += actual
+    } else {
+      total += fe.entry.amount
+    }
+  }
+  return total
+})
+vi.stubGlobal('computeEnvelopeEffectiveTotal', (entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string) => {
+  let total = 0
+  for (const fe of entries) {
+    const actual = fe.actuals[monthKey]
+    if (actual !== null && actual !== undefined) {
+      total += Math.max(actual, fe.entry.amount)
+    } else {
+      total += fe.entry.amount
+    }
+  }
+  return total
+})
 
 const { initHomeChart } = await import('./init')
 
