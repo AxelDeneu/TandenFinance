@@ -30,7 +30,8 @@ const tableUi = {
 const leadingClasses = {
   success: 'p-2.5 rounded-full bg-success/10 ring ring-inset ring-success/25 flex-col',
   error: 'p-2.5 rounded-full bg-error/10 ring ring-inset ring-error/25 flex-col',
-  warning: 'p-2.5 rounded-full bg-warning/10 ring ring-inset ring-warning/25 flex-col'
+  warning: 'p-2.5 rounded-full bg-warning/10 ring ring-inset ring-warning/25 flex-col',
+  yellow: 'p-2.5 rounded-full bg-primary/10 ring ring-inset ring-primary/25 flex-col'
 } as const
 
 const summaryStats = computed(() => [
@@ -40,7 +41,7 @@ const summaryStats = computed(() => [
     value: formatEuro(incomeTotals.value.effective),
     count: incomes.value.length,
     color: 'success' as const,
-    leadingClass: leadingClasses.success
+    leadingClass: leadingClasses.yellow
   },
   {
     title: 'Dépenses',
@@ -48,7 +49,7 @@ const summaryStats = computed(() => [
     value: formatEuro(expenseTotals.value.effective),
     count: expenses.value.length,
     color: 'error' as const,
-    leadingClass: leadingClasses.error
+    leadingClass: leadingClasses.yellow
   },
   {
     title: 'Enveloppes',
@@ -56,7 +57,7 @@ const summaryStats = computed(() => [
     value: formatEuro(envelopeTotals.value.effective),
     count: envelopes.value.length,
     color: 'warning' as const,
-    leadingClass: leadingClasses.warning
+    leadingClass: leadingClasses.yellow
   },
   {
     title: 'Reste',
@@ -64,7 +65,7 @@ const summaryStats = computed(() => [
     value: formatEuro(remaining.value),
     count: incomes.value.length + expenses.value.length + envelopes.value.length,
     color: (remaining.value >= 0 ? 'success' : 'error') as 'success' | 'error',
-    leadingClass: remaining.value >= 0 ? leadingClasses.success : leadingClasses.error
+    leadingClass: leadingClasses.yellow
   }
 ])
 </script>

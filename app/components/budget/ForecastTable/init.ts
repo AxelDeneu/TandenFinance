@@ -1,6 +1,6 @@
 import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
-import { UButton, UBadge, BudgetForecastCell, BudgetEnvelopeExpenseCell } from '#components'
+import { UButton, UBadge } from '#components'
 import type { ForecastData, ForecastEntry, EntryType } from '~/types'
 
 export function initBudgetForecastTable() {
@@ -112,15 +112,11 @@ export function initBudgetForecastTable() {
         id: 'actual',
         header: 'Réel',
         cell: ({ row }) => {
-          return h(BudgetForecastCell, {
-            plannedAmount: row.original.entry.amount,
-            actualAmount: row.original.actuals[monthKey.value] ?? null,
-            entryId: row.original.entry.id,
-            year: selectedYear.value,
-            month: selectedMonth.value,
-            onSaved: () => refresh(),
-            onCleared: () => refresh()
-          })
+          const actual = row.original.actuals[monthKey.value]
+          if (actual === null || actual === undefined) {
+            return h('span', { class: 'text-muted' }, '—')
+          }
+          return h('span', { class: 'tabular-nums font-medium' }, formatEuro(actual))
         }
       },
       {
@@ -136,8 +132,6 @@ export function initBudgetForecastTable() {
           const diff = actual - planned
           const isPositive = diff > 0
 
-          // For expenses/envelopes: positive diff means over budget (bad), negative means under (good)
-          // For incomes: positive diff means earned more (good), negative means earned less (bad)
           const isGood = type === 'income' ? diff >= 0 : diff <= 0
           const colorClass = isGood ? 'text-success' : 'text-error'
 
@@ -185,15 +179,11 @@ export function initBudgetForecastTable() {
         id: 'actual',
         header: 'Réel',
         cell: ({ row }) => {
-          return h(BudgetEnvelopeExpenseCell, {
-            plannedAmount: row.original.entry.amount,
-            actualAmount: row.original.actuals[monthKey.value] ?? null,
-            entryId: row.original.entry.id,
-            year: selectedYear.value,
-            month: selectedMonth.value,
-            entryLabel: row.original.entry.label,
-            onUpdated: () => refresh()
-          })
+          const actual = row.original.actuals[monthKey.value]
+          if (actual === null || actual === undefined) {
+            return h('span', { class: 'text-muted' }, '—')
+          }
+          return h('span', { class: 'tabular-nums font-medium' }, formatEuro(actual))
         }
       },
       {
@@ -209,7 +199,6 @@ export function initBudgetForecastTable() {
           const diff = actual - planned
           const isPositive = diff > 0
 
-          // For envelopes: positive diff means over budget (bad), negative means under (good)
           const colorClass = diff <= 0 ? 'text-success' : 'text-error'
 
           return h('span', {
@@ -265,8 +254,6 @@ export function initBudgetForecastTable() {
         planned += fe.entry.amount
         const act = fe.actuals[key]
         if (act !== null && act !== undefined) {
-          // For envelopes: effective = max(actual, planned)
-          // Budget is reserved even if not fully spent, but overspend counts
           effective += Math.max(act, fe.entry.amount)
         } else {
           effective += fe.entry.amount

@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { initUserMenu } from './init'
+import { initThemeMenu } from './init'
 
 const props = defineProps<{
   collapsed?: boolean
 }>()
 
-const { user, items } = initUserMenu({ props })
+const { items } = initThemeMenu({ props })
 </script>
 
 <template>
@@ -15,11 +15,9 @@ const { user, items } = initUserMenu({ props })
     :ui="{ content: collapsed ? 'w-48' : 'w-(--reka-dropdown-menu-trigger-width)' }"
   >
     <UButton
-      v-bind="{
-        ...user,
-        label: collapsed ? undefined : user?.name,
-        trailingIcon: collapsed ? undefined : 'i-lucide-chevrons-up-down'
-      }"
+      icon="i-lucide-palette"
+      :label="collapsed ? undefined : 'Apparence'"
+      :trailing-icon="collapsed ? undefined : 'i-lucide-chevrons-up-down'"
       color="neutral"
       variant="ghost"
       block

@@ -41,9 +41,7 @@ vi.stubGlobal('useFetch', () => ({
 
 vi.mock('#components', () => ({
   UButton: {},
-  UBadge: {},
-  BudgetForecastCell: {},
-  BudgetEnvelopeExpenseCell: {}
+  UBadge: {}
 }))
 
 const { initBudgetForecastTable } = await import('./init')

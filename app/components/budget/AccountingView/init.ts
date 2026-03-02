@@ -1,0 +1,279 @@
+import { h } from 'vue'
+import type { TableColumn } from '@nuxt/ui'
+import { UBadge, UButton } from '#components'
+import type { Transaction } from '~/types'
+
+export function initBudgetAccountingView() {
+  const now = new Date()
+  const route = useRoute()
+  const selectedYear = ref(Number(route.query.year) || now.getFullYear())
+  const selectedMonth = ref(Number(route.query.month) || (now.getMonth() + 1))
+
+  const selectedMonthLabel = computed(() => {
+    const date = new Date(selectedYear.value, selectedMonth.value - 1, 1)
+    return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date)
+  })
+
+  function previousMonth() {
+    if (selectedMonth.value === 1) {
+      selectedMonth.value = 12
+      selectedYear.value--
+    } else {
+      selectedMonth.value--
+    }
+  }
+
+  function nextMonth() {
+    if (selectedMonth.value === 12) {
+      selectedMonth.value = 1
+      selectedYear.value++
+    } else {
+      selectedMonth.value++
+    }
+  }
+
+  const { data: transactions, status, refresh } = useFetch<Transaction[]>('/api/budget/transactions', {
+    lazy: true,
+    query: computed(() => ({
+      year: selectedYear.value,
+      month: selectedMonth.value
+    })),
+    default: () => []
+  })
+
+  // Filters
+  const typeFilter = ref<'all' | 'income' | 'expense'>('all')
+  const categoryFilter = ref<number | null>(null)
+  const searchQuery = ref('')
+
+  const filteredTransactions = computed(() => {
+    let result = transactions.value
+
+    if (typeFilter.value !== 'all') {
+      result = result.filter(t => t.type === typeFilter.value)
+    }
+
+    if (categoryFilter.value !== null) {
+      if (categoryFilter.value === 0) {
+        result = result.filter(t => t.recurringEntryId === null)
+      } else {
+        result = result.filter(t => t.recurringEntryId === categoryFilter.value)
+      }
+    }
+
+    if (searchQuery.value) {
+      const q = searchQuery.value.toLowerCase()
+      result = result.filter(t => t.label.toLowerCase().includes(q))
+    }
+
+    return result
+  })
+
+  // Pagination
+  const page = ref(1)
+  const pageSize = 10
+
+  const paginatedTransactions = computed(() => {
+    const start = (page.value - 1) * pageSize
+    return filteredTransactions.value.slice(start, start + pageSize)
+  })
+
+  const totalPages = computed(() => Math.max(1, Math.ceil(filteredTransactions.value.length / pageSize)))
+
+  // Reset page when filters change
+  watch([typeFilter, categoryFilter, searchQuery, selectedYear, selectedMonth], () => {
+    page.value = 1
+  })
+
+  // Totals
+  const totalIncome = computed(() => {
+    return transactions.value
+      .filter(t => t.type === 'income')
+      .reduce((sum, t) => sum + t.amount, 0)
+  })
+
+  const totalExpense = computed(() => {
+    return transactions.value
+      .filter(t => t.type === 'expense')
+      .reduce((sum, t) => sum + t.amount, 0)
+  })
+
+  const balance = computed(() => totalIncome.value - totalExpense.value)
+
+  // Modal
+  const modalOpen = ref(false)
+  const editingTransaction = ref<Transaction | null>(null)
+
+  function openCreateModal() {
+    editingTransaction.value = null
+    modalOpen.value = true
+  }
+
+  function openEditModal(transaction: Transaction) {
+    editingTransaction.value = transaction
+    modalOpen.value = true
+  }
+
+  async function deleteTransaction(transaction: Transaction) {
+    const toast = useToast()
+    try {
+      await $fetch(`/api/budget/transactions/${transaction.id}`, { method: 'DELETE' })
+      toast.add({
+        title: 'Succès',
+        description: `La transaction "${transaction.label}" a été supprimée`,
+        color: 'success'
+      })
+      refresh()
+    } catch {
+      toast.add({
+        title: 'Erreur',
+        description: 'Une erreur est survenue',
+        color: 'error'
+      })
+    }
+  }
+
+  function onTransactionSaved() {
+    refresh()
+  }
+
+  // Category colors from recurring entries
+  function getCategoryBadge(transaction: Transaction) {
+    const entry = transaction.recurringEntry
+    if (!entry) {
+      return { label: 'Non catégorisé', color: 'neutral' as const }
+    }
+
+    let color: string = 'neutral'
+    if (entry.type === 'income') {
+      color = INCOME_CATEGORY_COLORS[entry.category ?? ''] || 'success'
+    } else if (entry.type === 'expense') {
+      color = EXPENSE_CATEGORY_COLORS[entry.category ?? ''] || 'error'
+    } else if (entry.type === 'envelope') {
+      color = ENVELOPE_COLOR
+    }
+
+    return { label: entry.label, color: color as 'neutral' | 'primary' | 'secondary' | 'success' | 'warning' | 'error' | 'info' }
+  }
+
+  // Table columns
+  const columns: TableColumn<Transaction>[] = [
+    {
+      accessorKey: 'date',
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted()
+        return h(UButton, {
+          color: 'neutral',
+          variant: 'ghost',
+          label: 'Date',
+          icon: isSorted
+            ? isSorted === 'asc'
+              ? 'i-lucide-arrow-up-narrow-wide'
+              : 'i-lucide-arrow-down-wide-narrow'
+            : 'i-lucide-arrow-up-down',
+          class: '-mx-2.5',
+          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+        })
+      },
+      cell: ({ row }) => {
+        const d = new Date(row.original.date)
+        return h('span', { class: 'tabular-nums text-muted' },
+          new Intl.DateTimeFormat('fr-FR', { day: '2-digit', month: '2-digit' }).format(d)
+        )
+      }
+    },
+    {
+      accessorKey: 'label',
+      header: ({ column }) => {
+        const isSorted = column.getIsSorted()
+        return h(UButton, {
+          color: 'neutral',
+          variant: 'ghost',
+          label: 'Libellé',
+          icon: isSorted
+            ? isSorted === 'asc'
+              ? 'i-lucide-arrow-up-narrow-wide'
+              : 'i-lucide-arrow-down-wide-narrow'
+            : 'i-lucide-arrow-up-down',
+          class: '-mx-2.5',
+          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
+        })
+      },
+      cell: ({ row }) => {
+        return h('span', { class: 'font-medium text-highlighted' }, row.original.label)
+      }
+    },
+    {
+      id: 'category',
+      header: 'Catégorie',
+      cell: ({ row }) => {
+        const badge = getCategoryBadge(row.original)
+        return h(UBadge, {
+          variant: 'subtle',
+          color: badge.color
+        }, () => badge.label)
+      }
+    },
+    {
+      accessorKey: 'amount',
+      header: 'Montant',
+      cell: ({ row }) => {
+        const isIncome = row.original.type === 'income'
+        const sign = isIncome ? '+' : '-'
+        const colorClass = isIncome ? 'text-success' : 'text-error'
+        return h('span', {
+          class: `tabular-nums font-medium ${colorClass}`
+        }, `${sign}${formatEuro(row.original.amount)}`)
+      }
+    },
+    {
+      id: 'actions',
+      cell: ({ row }) => {
+        return h('div', { class: 'flex items-center gap-1 justify-end' }, [
+          h(UButton, {
+            icon: 'i-lucide-pencil',
+            color: 'neutral',
+            variant: 'ghost',
+            size: 'xs',
+            onClick: () => openEditModal(row.original)
+          }),
+          h(UButton, {
+            icon: 'i-lucide-trash-2',
+            color: 'error',
+            variant: 'ghost',
+            size: 'xs',
+            onClick: () => deleteTransaction(row.original)
+          })
+        ])
+      }
+    }
+  ]
+
+  return {
+    selectedYear,
+    selectedMonth,
+    selectedMonthLabel,
+    previousMonth,
+    nextMonth,
+    transactions,
+    status,
+    refresh,
+    typeFilter,
+    categoryFilter,
+    searchQuery,
+    filteredTransactions,
+    paginatedTransactions,
+    page,
+    totalPages,
+    totalIncome,
+    totalExpense,
+    balance,
+    modalOpen,
+    editingTransaction,
+    openCreateModal,
+    openEditModal,
+    deleteTransaction,
+    onTransactionSaved,
+    columns
+  }
+}

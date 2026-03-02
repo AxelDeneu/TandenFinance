@@ -1,0 +1,166 @@
+import { describe, it, expect, vi, beforeEach } from 'vitest'
+import { ref, computed, watch, reactive } from 'vue'
+import type { Transaction, RecurringEntry } from '~/types'
+
+const mockIncomes: RecurringEntry[] = [
+  { id: 1, type: 'income', label: 'Salaire', amount: 3000, category: 'Salaire', dayOfMonth: 25, active: true, notes: null, createdAt: '', updatedAt: '' }
+]
+
+const mockExpenses: RecurringEntry[] = [
+  { id: 2, type: 'expense', label: 'Loyer', amount: 800, category: 'Logement', dayOfMonth: 5, active: true, notes: null, createdAt: '', updatedAt: '' }
+]
+
+const mockEnvelopes: RecurringEntry[] = [
+  { id: 3, type: 'envelope', label: 'Courses', amount: 500, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' }
+]
+
+vi.stubGlobal('ref', ref)
+vi.stubGlobal('computed', computed)
+vi.stubGlobal('watch', watch)
+vi.stubGlobal('reactive', reactive)
+vi.stubGlobal('useToast', () => ({ add: vi.fn() }))
+vi.stubGlobal('$fetch', vi.fn())
+
+vi.stubGlobal('useFetch', (url: string) => {
+  if (url.includes('incomes')) return { data: ref(mockIncomes), status: ref('idle') }
+  if (url.includes('expenses')) return { data: ref(mockExpenses), status: ref('idle') }
+  if (url.includes('envelopes')) return { data: ref(mockEnvelopes), status: ref('idle') }
+  return { data: ref([]), status: ref('idle') }
+})
+
+const { initTransactionModal } = await import('./init')
+
+describe('initTransactionModal', () => {
+  beforeEach(() => {
+    vi.clearAllMocks()
+  })
+
+  function createContext(transaction?: Transaction | null) {
+    return {
+      props: { transaction: transaction ?? undefined },
+      emit: vi.fn(),
+      open: ref(true)
+    }
+  }
+
+  it('returns all expected properties', () => {
+    const ctx = createContext()
+    const result = initTransactionModal(ctx)
+
+    expect(result).toHaveProperty('schema')
+    expect(result).toHaveProperty('state')
+    expect(result).toHaveProperty('isEdit')
+    expect(result).toHaveProperty('modalTitle')
+    expect(result).toHaveProperty('categoryOptions')
+    expect(result).toHaveProperty('onSubmit')
+  })
+
+  it('isEdit is false for new transaction', () => {
+    const ctx = createContext()
+    const { isEdit } = initTransactionModal(ctx)
+    expect(isEdit.value).toBe(false)
+  })
+
+  it('isEdit is true when editing', () => {
+    const transaction: Transaction = {
+      id: 1, label: 'Test', amount: 50, type: 'expense', date: '2026-03-01',
+      recurringEntryId: null, notes: null, createdAt: '', updatedAt: ''
+    }
+    const ctx = createContext(transaction)
+    const { isEdit } = initTransactionModal(ctx)
+    expect(isEdit.value).toBe(true)
+  })
+
+  it('modalTitle shows "Nouvelle transaction" for create', () => {
+    const ctx = createContext()
+    const { modalTitle } = initTransactionModal(ctx)
+    expect(modalTitle.value).toBe('Nouvelle transaction')
+  })
+
+  it('modalTitle shows "Modifier la transaction" for edit', () => {
+    const transaction: Transaction = {
+      id: 1, label: 'Test', amount: 50, type: 'expense', date: '2026-03-01',
+      recurringEntryId: null, notes: null, createdAt: '', updatedAt: ''
+    }
+    const ctx = createContext(transaction)
+    const { modalTitle } = initTransactionModal(ctx)
+    expect(modalTitle.value).toBe('Modifier la transaction')
+  })
+
+  it('state defaults to expense type with today date', () => {
+    const ctx = createContext()
+    const { state } = initTransactionModal(ctx)
+
+    expect(state.type).toBe('expense')
+    expect(state.label).toBe('')
+    expect(state.amount).toBeUndefined()
+    expect(state.recurringEntryId).toBeNull()
+    expect(state.date).toBe(new Date().toISOString().slice(0, 10))
+  })
+
+  it('state is populated when editing', () => {
+    const transaction: Transaction = {
+      id: 1, label: 'Courses', amount: 85.50, type: 'expense', date: '2026-03-12',
+      recurringEntryId: 3, notes: 'Test note', createdAt: '', updatedAt: ''
+    }
+    const ctx = createContext(transaction)
+    const { state } = initTransactionModal(ctx)
+
+    expect(state.label).toBe('Courses')
+    expect(state.amount).toBe(85.50)
+    expect(state.type).toBe('expense')
+    expect(state.date).toBe('2026-03-12')
+    expect(state.recurringEntryId).toBe(3)
+    expect(state.notes).toBe('Test note')
+  })
+
+  it('categoryOptions includes entries from all types', () => {
+    const ctx = createContext()
+    const { categoryOptions } = initTransactionModal(ctx)
+
+    expect(categoryOptions.value).toHaveLength(3)
+    expect(categoryOptions.value.find(o => o.label === 'Salaire')).toBeDefined()
+    expect(categoryOptions.value.find(o => o.label === 'Loyer')).toBeDefined()
+    expect(categoryOptions.value.find(o => o.label === 'Courses')).toBeDefined()
+  })
+
+  it('categoryOptions groups entries correctly', () => {
+    const ctx = createContext()
+    const { categoryOptions } = initTransactionModal(ctx)
+
+    const salaire = categoryOptions.value.find(o => o.label === 'Salaire')
+    expect(salaire?.group).toBe('Revenus')
+    expect(salaire?.type).toBe('income')
+
+    const loyer = categoryOptions.value.find(o => o.label === 'Loyer')
+    expect(loyer?.group).toBe('Dépenses')
+    expect(loyer?.type).toBe('expense')
+
+    const courses = categoryOptions.value.find(o => o.label === 'Courses')
+    expect(courses?.group).toBe('Enveloppes')
+    expect(courses?.type).toBe('expense')
+  })
+
+  it('auto-selects income type when income category is chosen', async () => {
+    const ctx = createContext()
+    const { state } = initTransactionModal(ctx)
+
+    state.type = 'expense'
+    state.recurringEntryId = 1 // Salaire (income)
+
+    // Wait for watcher
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(state.type).toBe('income')
+  })
+
+  it('auto-selects expense type when expense category is chosen', async () => {
+    const ctx = createContext()
+    const { state } = initTransactionModal(ctx)
+
+    state.type = 'income'
+    state.recurringEntryId = 2 // Loyer (expense)
+
+    await new Promise(resolve => setTimeout(resolve, 0))
+    expect(state.type).toBe('expense')
+  })
+})

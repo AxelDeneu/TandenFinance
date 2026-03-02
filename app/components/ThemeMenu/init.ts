@@ -1,39 +1,17 @@
 import type { DropdownMenuItem } from '@nuxt/ui'
 
-interface UserMenuContext {
+interface ThemeMenuContext {
   props: { collapsed?: boolean }
 }
 
-export function initUserMenu(_ctx: UserMenuContext) {
+export function initThemeMenu(_ctx: ThemeMenuContext) {
   const colorMode = useColorMode()
   const appConfig = useAppConfig()
 
   const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
   const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone']
 
-  const user = ref({
-    name: 'Benjamin Canac',
-    avatar: {
-      src: 'https://github.com/benjamincanac.png',
-      alt: 'Benjamin Canac'
-    }
-  })
-
   const items = computed<DropdownMenuItem[][]>(() => ([[{
-    type: 'label',
-    label: user.value.name,
-    avatar: user.value.avatar
-  }], [{
-    label: 'Profil',
-    icon: 'i-lucide-user'
-  }, {
-    label: 'Facturation',
-    icon: 'i-lucide-credit-card'
-  }, {
-    label: 'Paramètres',
-    icon: 'i-lucide-settings',
-    to: '/settings'
-  }], [{
     label: 'Thème',
     icon: 'i-lucide-palette',
     children: [{
@@ -104,23 +82,9 @@ export function initUserMenu(_ctx: UserMenuContext) {
         e.preventDefault()
       }
     }]
-  }], [{
-    label: 'Documentation',
-    icon: 'i-lucide-book-open',
-    to: 'https://ui.nuxt.com/docs/getting-started/installation/nuxt',
-    target: '_blank'
-  }, {
-    label: 'Dépôt GitHub',
-    icon: 'i-simple-icons-github',
-    to: 'https://github.com/nuxt-ui-templates/dashboard',
-    target: '_blank'
-  }, {
-    label: 'Déconnexion',
-    icon: 'i-lucide-log-out'
   }]]))
 
   return {
-    user,
     items
   }
 }

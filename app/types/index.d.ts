@@ -59,23 +59,15 @@ export interface RecurringEntry {
   updatedAt: string
 }
 
-export interface MonthlyActual {
+export interface Transaction {
   id: number
-  recurringEntryId: number
-  year: number
-  month: number
-  actualAmount: number
-  createdAt: string
-  updatedAt: string
-}
-
-export interface EnvelopeExpense {
-  id: number
-  recurringEntryId: number
-  year: number
-  month: number
   label: string
   amount: number
+  type: 'income' | 'expense'
+  date: string
+  recurringEntryId: number | null
+  recurringEntry?: RecurringEntry | null
+  notes: string | null
   createdAt: string
   updatedAt: string
 }

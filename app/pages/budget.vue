@@ -7,6 +7,10 @@ const links = [[{
   to: '/budget',
   exact: true
 }, {
+  label: 'Comptabilité',
+  icon: 'i-lucide-receipt',
+  to: '/budget/comptabilite'
+}, {
   label: 'Prévisionnel',
   icon: 'i-lucide-calendar-range',
   to: '/budget/previsionnel'

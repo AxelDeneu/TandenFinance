@@ -1,4 +1,4 @@
-import { eq, and, gte, lte, inArray } from 'drizzle-orm'
+import { eq, like } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 
 export default defineEventHandler(async (event) => {
@@ -31,68 +31,39 @@ export default defineEventHandler(async (event) => {
       .from(schema.recurringEntries)
       .where(eq(schema.recurringEntries.active, true))
 
-    const nonEnvelopeEntryIds = activeEntries.filter(e => e.type !== 'envelope').map(e => e.id)
-    const envelopeEntryIds = activeEntries.filter(e => e.type === 'envelope').map(e => e.id)
-
-    let actuals: { id: number, recurringEntryId: number, year: number, month: number, actualAmount: number, createdAt: Date, updatedAt: Date }[] = []
-
-    const startYear = months.length > 0 ? months[0]!.year : 0
-    const startMonth = months.length > 0 ? months[0]!.month : 0
-    const endYear = months.length > 0 ? months[months.length - 1]!.year : 0
-    const endMonth = months.length > 0 ? months[months.length - 1]!.month : 0
-
-    if (nonEnvelopeEntryIds.length > 0 && months.length > 0) {
-      actuals = await db
-        .select()
-        .from(schema.monthlyActuals)
-        .where(and(
-          inArray(schema.monthlyActuals.recurringEntryId, nonEnvelopeEntryIds),
-          gte(schema.monthlyActuals.year, startYear),
-          lte(schema.monthlyActuals.year, endYear)
-        ))
-
-      actuals = actuals.filter((a) => {
-        if (a.year === startYear && a.month < startMonth) return false
-        if (a.year === endYear && a.month > endMonth) return false
-        return true
-      })
-    }
-
+    // Fetch all transactions for the month range and aggregate by recurringEntryId + month
     const actualsByEntry = new Map<number, Map<string, number>>()
-    for (const actual of actuals) {
-      const key = `${actual.year}-${actual.month}`
-      if (!actualsByEntry.has(actual.recurringEntryId)) {
-        actualsByEntry.set(actual.recurringEntryId, new Map())
-      }
-      actualsByEntry.get(actual.recurringEntryId)!.set(key, actual.actualAmount)
-    }
+    // Also track uncategorized transactions per month
+    const uncategorizedByMonth = new Map<string, { income: number, expense: number }>()
 
-    // Compute envelope actuals from envelope_expenses
-    if (envelopeEntryIds.length > 0 && months.length > 0) {
-      const envelopeExpensesRaw = await db
+    for (const m of months) {
+      const datePrefix = `${m.year}-${String(m.month).padStart(2, '0')}`
+
+      const monthTransactions = await db
         .select()
-        .from(schema.envelopeExpenses)
-        .where(and(
-          inArray(schema.envelopeExpenses.recurringEntryId, envelopeEntryIds),
-          gte(schema.envelopeExpenses.year, startYear),
-          lte(schema.envelopeExpenses.year, endYear)
-        ))
+        .from(schema.transactions)
+        .where(like(schema.transactions.date, `${datePrefix}%`))
 
-      // Filter to exact month range (same as actuals)
-      const filteredEnvExpenses = envelopeExpensesRaw.filter((e) => {
-        if (e.year === startYear && e.month < startMonth) return false
-        if (e.year === endYear && e.month > endMonth) return false
-        return true
-      })
+      for (const tx of monthTransactions) {
+        const key = `${m.year}-${m.month}`
 
-      // Sum by entry+year+month
-      for (const exp of filteredEnvExpenses) {
-        const key = `${exp.year}-${exp.month}`
-        if (!actualsByEntry.has(exp.recurringEntryId)) {
-          actualsByEntry.set(exp.recurringEntryId, new Map())
+        if (tx.recurringEntryId) {
+          if (!actualsByEntry.has(tx.recurringEntryId)) {
+            actualsByEntry.set(tx.recurringEntryId, new Map())
+          }
+          const entryMap = actualsByEntry.get(tx.recurringEntryId)!
+          entryMap.set(key, (entryMap.get(key) ?? 0) + tx.amount)
+        } else {
+          if (!uncategorizedByMonth.has(key)) {
+            uncategorizedByMonth.set(key, { income: 0, expense: 0 })
+          }
+          const uncat = uncategorizedByMonth.get(key)!
+          if (tx.type === 'income') {
+            uncat.income += tx.amount
+          } else {
+            uncat.expense += tx.amount
+          }
         }
-        const entryMap = actualsByEntry.get(exp.recurringEntryId)!
-        entryMap.set(key, (entryMap.get(key) ?? 0) + exp.amount)
       }
     }
 
@@ -107,11 +78,75 @@ export default defineEventHandler(async (event) => {
       })
     }
 
+    // Build uncategorized forecast entries
+    const uncategorizedIncomeActuals: Record<string, number | null> = {}
+    const uncategorizedExpenseActuals: Record<string, number | null> = {}
+    let hasUncategorizedIncome = false
+    let hasUncategorizedExpense = false
+
+    for (const m of months) {
+      const key = `${m.year}-${m.month}`
+      const uncat = uncategorizedByMonth.get(key)
+      if (uncat && uncat.income > 0) {
+        uncategorizedIncomeActuals[key] = uncat.income
+        hasUncategorizedIncome = true
+      } else {
+        uncategorizedIncomeActuals[key] = null
+      }
+      if (uncat && uncat.expense > 0) {
+        uncategorizedExpenseActuals[key] = uncat.expense
+        hasUncategorizedExpense = true
+      } else {
+        uncategorizedExpenseActuals[key] = null
+      }
+    }
+
+    const incomes = buildForecastEntries(activeEntries.filter(e => e.type === 'income'))
+    const expenses = buildForecastEntries(activeEntries.filter(e => e.type === 'expense'))
+    const envelopes = buildForecastEntries(activeEntries.filter(e => e.type === 'envelope'))
+
+    // Add uncategorized rows if there are any
+    if (hasUncategorizedIncome) {
+      incomes.push({
+        entry: {
+          id: -1,
+          type: 'income',
+          label: 'Non catégorisé',
+          amount: 0,
+          category: null,
+          dayOfMonth: null,
+          active: true,
+          notes: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        actuals: uncategorizedIncomeActuals
+      })
+    }
+
+    if (hasUncategorizedExpense) {
+      expenses.push({
+        entry: {
+          id: -2,
+          type: 'expense',
+          label: 'Non catégorisé',
+          amount: 0,
+          category: null,
+          dayOfMonth: null,
+          active: true,
+          notes: null,
+          createdAt: new Date(),
+          updatedAt: new Date()
+        },
+        actuals: uncategorizedExpenseActuals
+      })
+    }
+
     return {
       months,
-      incomes: buildForecastEntries(activeEntries.filter(e => e.type === 'income')),
-      expenses: buildForecastEntries(activeEntries.filter(e => e.type === 'expense')),
-      envelopes: buildForecastEntries(activeEntries.filter(e => e.type === 'envelope'))
+      incomes,
+      expenses,
+      envelopes
     }
   } catch (error: unknown) {
     if (error && typeof error === 'object' && 'statusCode' in error) {

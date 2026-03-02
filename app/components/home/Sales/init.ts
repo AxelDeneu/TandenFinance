@@ -1,55 +1,49 @@
 import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { UBadge } from '#components'
-
-export interface RecentEnvelopeExpense {
-  id: number
-  label: string
-  envelopeLabel: string
-  amount: number
-  year: number
-  month: number
-  createdAt: string
-}
+import type { Transaction } from '~/types'
 
 export async function initHomeSales() {
-  const { data } = await useAsyncData<RecentEnvelopeExpense[]>('recent-envelope-expenses', () =>
-    $fetch('/api/budget/envelopes/recent-expenses')
-  , {
-    default: () => []
-  })
+  const now = new Date()
+  const year = now.getFullYear()
+  const month = now.getMonth() + 1
 
-  const columns: TableColumn<RecentEnvelopeExpense>[] = [
+  const { data } = await useAsyncData<Transaction[]>(
+    'recent-transactions',
+    () => $fetch('/api/budget/transactions', { query: { year, month } }),
+    { default: () => [] }
+  )
+
+  const recentTransactions = computed(() => data.value.slice(0, 10))
+
+  const columns: TableColumn<Transaction>[] = [
     {
-      accessorKey: 'envelopeLabel',
-      header: 'Enveloppe',
+      accessorKey: 'date',
+      header: 'Date',
       cell: ({ row }) => {
-        return h(UBadge, {
-          variant: 'subtle',
-          color: 'warning' as const
-        }, () => row.getValue('envelopeLabel'))
+        const d = new Date(row.original.date)
+        return d.toLocaleDateString('fr-FR', {
+          day: 'numeric',
+          month: 'short'
+        })
       }
     },
     {
       accessorKey: 'label',
-      header: 'Libelle',
+      header: 'Libellé',
       cell: ({ row }) => {
         return h('span', { class: 'font-medium text-highlighted' }, row.getValue('label'))
       }
     },
     {
-      accessorKey: 'createdAt',
-      header: 'Date',
+      accessorKey: 'type',
+      header: 'Type',
       cell: ({ row }) => {
-        const dateValue = row.getValue('createdAt')
-        if (!dateValue) return '-'
-
-        const date = new Date(dateValue as string | number)
-        return date.toLocaleDateString('fr-FR', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric'
-        })
+        const isIncome = row.original.type === 'income'
+        return h(UBadge, {
+          variant: 'subtle',
+          color: (isIncome ? 'success' : 'error') as 'success' | 'error'
+        }, () => isIncome ? 'Revenu' : 'Dépense')
       }
     },
     {
@@ -57,10 +51,13 @@ export async function initHomeSales() {
       header: () => h('div', { class: 'text-right' }, 'Montant'),
       cell: ({ row }) => {
         const amount = Number(row.getValue('amount'))
-        return h('div', { class: 'text-right font-medium tabular-nums' }, formatEuro(amount))
+        const isIncome = row.original.type === 'income'
+        const colorClass = isIncome ? 'text-success' : 'text-error'
+        const sign = isIncome ? '+' : '-'
+        return h('div', { class: `text-right font-medium tabular-nums ${colorClass}` }, `${sign}${formatEuro(amount)}`)
       }
     }
   ]
 
-  return { data, columns }
+  return { data: recentTransactions, columns }
 }

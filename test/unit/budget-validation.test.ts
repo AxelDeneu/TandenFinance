@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createEntrySchema, updateEntrySchema, createEnvelopeSchema, updateEnvelopeSchema, upsertActualSchema, deleteActualSchema } from '../../server/utils/budget-validation'
+import { createEntrySchema, updateEntrySchema, createEnvelopeSchema, updateEnvelopeSchema, createTransactionSchema, updateTransactionSchema } from '../../server/utils/budget-validation'
 
 describe('createEntrySchema', () => {
   it('accepts valid entry data', () => {
@@ -323,91 +323,162 @@ describe('updateEnvelopeSchema', () => {
   })
 })
 
-describe('upsertActualSchema', () => {
-  it('accepts valid actual data', () => {
-    const result = upsertActualSchema.safeParse({
-      year: 2025,
-      month: 3,
-      actualAmount: 480
+describe('createTransactionSchema', () => {
+  it('accepts valid transaction data', () => {
+    const result = createTransactionSchema.safeParse({
+      label: 'Courses Carrefour',
+      amount: 85.50,
+      type: 'expense',
+      date: '2026-03-01'
     })
     expect(result.success).toBe(true)
   })
 
-  it('accepts zero amount', () => {
-    const result = upsertActualSchema.safeParse({
-      year: 2025,
-      month: 1,
-      actualAmount: 0
+  it('accepts income type', () => {
+    const result = createTransactionSchema.safeParse({
+      label: 'Salaire',
+      amount: 3000,
+      type: 'income',
+      date: '2026-03-25'
     })
     expect(result.success).toBe(true)
+  })
+
+  it('accepts optional recurringEntryId', () => {
+    const result = createTransactionSchema.safeParse({
+      label: 'Courses',
+      amount: 50,
+      type: 'expense',
+      date: '2026-03-01',
+      recurringEntryId: 5
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.recurringEntryId).toBe(5)
+    }
+  })
+
+  it('accepts null recurringEntryId', () => {
+    const result = createTransactionSchema.safeParse({
+      label: 'Imprévu',
+      amount: 20,
+      type: 'expense',
+      date: '2026-03-01',
+      recurringEntryId: null
+    })
+    expect(result.success).toBe(true)
+    if (result.success) {
+      expect(result.data.recurringEntryId).toBeNull()
+    }
+  })
+
+  it('accepts optional notes', () => {
+    const result = createTransactionSchema.safeParse({
+      label: 'Test',
+      amount: 10,
+      type: 'expense',
+      date: '2026-03-01',
+      notes: 'Une note'
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('rejects empty label', () => {
+    const result = createTransactionSchema.safeParse({
+      label: '',
+      amount: 50,
+      type: 'expense',
+      date: '2026-03-01'
+    })
+    expect(result.success).toBe(false)
   })
 
   it('rejects negative amount', () => {
-    const result = upsertActualSchema.safeParse({
-      year: 2025,
-      month: 1,
-      actualAmount: -10
+    const result = createTransactionSchema.safeParse({
+      label: 'Test',
+      amount: -10,
+      type: 'expense',
+      date: '2026-03-01'
     })
     expect(result.success).toBe(false)
   })
 
-  it('rejects invalid month', () => {
-    const result = upsertActualSchema.safeParse({
-      year: 2025,
-      month: 13,
-      actualAmount: 100
+  it('rejects zero amount', () => {
+    const result = createTransactionSchema.safeParse({
+      label: 'Test',
+      amount: 0,
+      type: 'expense',
+      date: '2026-03-01'
     })
     expect(result.success).toBe(false)
   })
 
-  it('rejects month 0', () => {
-    const result = upsertActualSchema.safeParse({
-      year: 2025,
-      month: 0,
-      actualAmount: 100
+  it('rejects invalid type', () => {
+    const result = createTransactionSchema.safeParse({
+      label: 'Test',
+      amount: 10,
+      type: 'envelope',
+      date: '2026-03-01'
     })
     expect(result.success).toBe(false)
   })
 
-  it('rejects year below 2000', () => {
-    const result = upsertActualSchema.safeParse({
-      year: 1999,
-      month: 1,
-      actualAmount: 100
+  it('rejects invalid date format', () => {
+    const result = createTransactionSchema.safeParse({
+      label: 'Test',
+      amount: 10,
+      type: 'expense',
+      date: '01/03/2026'
     })
     expect(result.success).toBe(false)
   })
 
-  it('rejects year above 2100', () => {
-    const result = upsertActualSchema.safeParse({
-      year: 2101,
-      month: 1,
-      actualAmount: 100
+  it('rejects date without leading zeros', () => {
+    const result = createTransactionSchema.safeParse({
+      label: 'Test',
+      amount: 10,
+      type: 'expense',
+      date: '2026-3-1'
     })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects missing required fields', () => {
+    const result = createTransactionSchema.safeParse({})
     expect(result.success).toBe(false)
   })
 })
 
-describe('deleteActualSchema', () => {
-  it('accepts valid delete data', () => {
-    const result = deleteActualSchema.safeParse({
-      year: 2025,
-      month: 3
+describe('updateTransactionSchema', () => {
+  it('accepts partial data with only label', () => {
+    const result = updateTransactionSchema.safeParse({
+      label: 'Updated'
     })
     expect(result.success).toBe(true)
   })
 
-  it('rejects invalid month', () => {
-    const result = deleteActualSchema.safeParse({
-      year: 2025,
-      month: 0
+  it('accepts partial data with only amount', () => {
+    const result = updateTransactionSchema.safeParse({
+      amount: 100
+    })
+    expect(result.success).toBe(true)
+  })
+
+  it('accepts empty object', () => {
+    const result = updateTransactionSchema.safeParse({})
+    expect(result.success).toBe(true)
+  })
+
+  it('still validates amount when provided', () => {
+    const result = updateTransactionSchema.safeParse({
+      amount: -10
     })
     expect(result.success).toBe(false)
   })
 
-  it('rejects missing year', () => {
-    const result = deleteActualSchema.safeParse({
-      month: 3
+  it('still validates date when provided', () => {
+    const result = updateTransactionSchema.safeParse({
+      date: 'invalid'
     })
     expect(result.success).toBe(false)
   })

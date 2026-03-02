@@ -20,20 +20,13 @@ export const createEnvelopeSchema = z.object({
 
 export const updateEnvelopeSchema = createEnvelopeSchema.partial()
 
-export const upsertActualSchema = z.object({
-  year: z.number().int().min(2000).max(2100),
-  month: z.number().int().min(1).max(12),
-  actualAmount: z.number().nonnegative()
-})
-
-export const deleteActualSchema = z.object({
-  year: z.number().int().min(2000).max(2100),
-  month: z.number().int().min(1).max(12)
-})
-
-export const createEnvelopeExpenseSchema = z.object({
-  year: z.number().int().min(2000).max(2100),
-  month: z.number().int().min(1).max(12),
+export const createTransactionSchema = z.object({
   label: z.string().min(1).max(255),
-  amount: z.number().positive()
+  amount: z.number().positive(),
+  type: z.enum(['income', 'expense']),
+  date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Format date ISO attendu (YYYY-MM-DD)'),
+  recurringEntryId: z.number().int().positive().nullable().optional(),
+  notes: z.string().nullable().optional()
 })
+
+export const updateTransactionSchema = createTransactionSchema.partial()

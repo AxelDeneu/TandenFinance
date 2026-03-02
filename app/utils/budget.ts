@@ -1,45 +1,71 @@
 export const INCOME_CATEGORIES = [
   'Salaire',
   'Freelance',
-  'Aide',
+  'Aides sociales',
   'Investissements',
+  'Primes',
+  'Remboursements',
+  'Vente',
   'Autre'
 ] as const
 
 export const EXPENSE_CATEGORIES = [
-  'Logement',
+  'Loyer',
+  'Charges',
+  'Énergie',
+  'Eau',
+  'Télécom',
   'Abonnements',
-  'Dettes',
-  'Frais bancaires',
-  'Assurances',
   'Transport',
   'Alimentation',
+  'Restaurant',
+  'Santé',
+  'Enfants',
+  'Habillement',
   'Loisirs',
-  'Sante',
-  'Education',
+  'Éducation',
+  'Cadeaux',
+  'Épargne',
+  'Impôts',
+  'Dettes',
+  'Assurances',
+  'Frais bancaires',
   'Divers'
 ] as const
 
 export const EXPENSE_CATEGORY_COLORS: Record<string, string> = {
-  'Logement': 'warning',
+  'Loyer': 'warning',
+  'Charges': 'warning',
+  'Énergie': 'warning',
+  'Eau': 'info',
+  'Télécom': 'info',
   'Abonnements': 'info',
-  'Dettes': 'error',
-  'Frais bancaires': 'neutral',
-  'Assurances': 'primary',
-  'Transport': 'info',
+  'Transport': 'primary',
   'Alimentation': 'success',
+  'Restaurant': 'success',
+  'Santé': 'error',
+  'Enfants': 'primary',
+  'Habillement': 'neutral',
   'Loisirs': 'primary',
-  'Sante': 'error',
-  'Education': 'warning',
+  'Éducation': 'warning',
+  'Cadeaux': 'primary',
+  'Épargne': 'success',
+  'Impôts': 'error',
+  'Dettes': 'error',
+  'Assurances': 'neutral',
+  'Frais bancaires': 'neutral',
   'Divers': 'neutral'
 }
 
 export const INCOME_CATEGORY_COLORS: Record<string, string> = {
-  Salaire: 'success',
-  Freelance: 'info',
-  Aide: 'warning',
-  Investissements: 'primary',
-  Autre: 'neutral'
+  'Salaire': 'success',
+  'Freelance': 'info',
+  'Aides sociales': 'warning',
+  'Investissements': 'primary',
+  'Primes': 'success',
+  'Remboursements': 'info',
+  'Vente': 'warning',
+  'Autre': 'neutral'
 }
 
 export const ENVELOPE_COLOR = 'warning'

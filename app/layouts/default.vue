@@ -4,6 +4,19 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const toast = useToast()
 
 const open = ref(false)
+const collapsed = ref(true)
+let collapseTimer: ReturnType<typeof setTimeout>
+
+function onMouseEnter() {
+  clearTimeout(collapseTimer)
+  collapsed.value = false
+}
+
+function onMouseLeave() {
+  collapseTimer = setTimeout(() => {
+    collapsed.value = true
+  }, 200)
+}
 
 const links = [{
   label: 'Accueil',
@@ -26,6 +39,12 @@ const links = [{
       open.value = false
     }
   }, {
+    label: 'Comptabilité',
+    to: '/budget/comptabilite',
+    onSelect: () => {
+      open.value = false
+    }
+  }, {
     label: 'Prévisionnel',
     to: '/budget/previsionnel',
     onSelect: () => {
@@ -38,13 +57,6 @@ const links = [{
       open.value = false
     }
   }]
-}, {
-  label: 'Paramètres',
-  to: '/settings',
-  icon: 'i-lucide-settings',
-  onSelect: () => {
-    open.value = false
-  }
 }] satisfies NavigationMenuItem[]
 
 const groups = computed(() => [{
@@ -84,28 +96,21 @@ onMounted(async () => {
     <UDashboardSidebar
       id="default"
       v-model:open="open"
+      v-model:collapsed="collapsed"
       collapsible
-      resizable
+      :collapsed-size="4"
+      :min-size="10"
+      :default-size="18"
       class="bg-elevated/25"
-      :ui="{ footer: 'lg:border-t lg:border-default' }"
+      :ui="{
+        root: 'transition-[width,min-width,flex-basis] duration-300 ease-in-out',
+        footer: 'lg:border-t lg:border-default'
+      }"
+      @mouseenter="onMouseEnter"
+      @mouseleave="onMouseLeave"
     >
-      <template #header="{ collapsed }">
-        <UButton
-          label="TandenFinance"
-          color="neutral"
-          variant="ghost"
-          block
-          :square="collapsed"
-          class="data-[state=open]:bg-elevated"
-          :class="[!collapsed && 'py-2', 'justify-start']"
-          :ui="{
-            trailingIcon: 'text-dimmed'
-          }"
-        />
-      </template>
-
       <template #default="{ collapsed }">
-        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default" />
+        <UDashboardSearchButton :collapsed="collapsed" class="bg-transparent ring-default mt-2" />
 
         <UNavigationMenu
           :collapsed="collapsed"
@@ -114,10 +119,6 @@ onMounted(async () => {
           tooltip
           popover
         />
-      </template>
-
-      <template #footer="{ collapsed }">
-        <UserMenu :collapsed="collapsed" />
       </template>
     </UDashboardSidebar>
 

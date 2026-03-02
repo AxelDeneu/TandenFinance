@@ -57,6 +57,12 @@ pnpm lint
 
 # Type checking
 pnpm typecheck
+
+# Generate database migrations (after modifying server/db/schema.ts)
+npx nuxt db generate
+
+# Migrations are applied automatically on dev server startup
+
 ```
 
 ## Architecture
