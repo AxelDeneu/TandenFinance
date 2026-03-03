@@ -1,26 +1,26 @@
-import { sqliteTable, text, integer, real } from 'drizzle-orm/sqlite-core'
+import { pgTable, serial, text, real, integer, boolean, timestamp } from 'drizzle-orm/pg-core'
 
-export const recurringEntries = sqliteTable('recurring_entries', {
-  id: integer().primaryKey({ autoIncrement: true }),
+export const recurringEntries = pgTable('recurring_entries', {
+  id: serial().primaryKey(),
   type: text({ enum: ['income', 'expense', 'envelope'] }).notNull(),
   label: text().notNull(),
   amount: real().notNull(),
   category: text(),
   dayOfMonth: integer('day_of_month'),
-  active: integer({ mode: 'boolean' }).notNull().default(true),
+  active: boolean().notNull().default(true),
   notes: text(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull()
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull()
 })
 
-export const transactions = sqliteTable('transactions', {
-  id: integer().primaryKey({ autoIncrement: true }),
+export const transactions = pgTable('transactions', {
+  id: serial().primaryKey(),
   label: text().notNull(),
   amount: real().notNull(),
   type: text({ enum: ['income', 'expense'] }).notNull(),
   date: text().notNull(),
   recurringEntryId: integer('recurring_entry_id').references(() => recurringEntries.id, { onDelete: 'set null' }),
   notes: text(),
-  createdAt: integer('created_at', { mode: 'timestamp' }).notNull(),
-  updatedAt: integer('updated_at', { mode: 'timestamp' }).notNull()
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull()
 })
