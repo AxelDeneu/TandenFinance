@@ -124,7 +124,7 @@ const typeFilterOptions = [
         class="w-64"
       />
       <USelect
-        v-model="(typeFilter as string)"
+        v-model="typeFilter"
         :items="typeFilterOptions"
         class="w-40"
       />
