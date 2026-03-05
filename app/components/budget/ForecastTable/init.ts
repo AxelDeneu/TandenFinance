@@ -1,6 +1,7 @@
 import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
-import { UButton, UBadge } from '#components'
+import { UBadge } from '#components'
+import { sortableHeader } from '~/utils/table'
 import type { ForecastData, ForecastEntry, EntryType } from '~/types'
 
 export function initBudgetForecastTable() {
@@ -34,22 +35,7 @@ export function initBudgetForecastTable() {
       {
         accessorFn: (row: ForecastEntry) => row.entry.label,
         id: 'label',
-        header: ({ column }) => {
-          const isSorted = column.getIsSorted()
-
-          return h(UButton, {
-            color: 'neutral',
-            variant: 'ghost',
-            label: 'Libellé',
-            icon: isSorted
-              ? isSorted === 'asc'
-                ? 'i-lucide-arrow-up-narrow-wide'
-                : 'i-lucide-arrow-down-wide-narrow'
-              : 'i-lucide-arrow-up-down',
-            class: '-mx-2.5',
-            onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
-          })
-        },
+        header: sortableHeader('Libellé'),
         cell: ({ row }) => {
           return h('span', { class: 'font-medium text-highlighted' }, row.original.entry.label)
         }
@@ -120,22 +106,7 @@ export function initBudgetForecastTable() {
       {
         accessorFn: (row: ForecastEntry) => row.entry.label,
         id: 'label',
-        header: ({ column }) => {
-          const isSorted = column.getIsSorted()
-
-          return h(UButton, {
-            color: 'neutral',
-            variant: 'ghost',
-            label: 'Libellé',
-            icon: isSorted
-              ? isSorted === 'asc'
-                ? 'i-lucide-arrow-up-narrow-wide'
-                : 'i-lucide-arrow-down-wide-narrow'
-              : 'i-lucide-arrow-up-down',
-            class: '-mx-2.5',
-            onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
-          })
-        },
+        header: sortableHeader('Libellé'),
         cell: ({ row }) => {
           return h('span', { class: 'font-medium text-highlighted' }, row.original.entry.label)
         }

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
+import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 import type { ForecastData } from '~/types'
 
 const mockRefresh = vi.fn()
@@ -26,44 +27,13 @@ const mockData: ForecastData = {
   ]
 }
 
-vi.stubGlobal('ref', ref)
-vi.stubGlobal('computed', computed)
-vi.stubGlobal('formatEuro', (v: number) => `${v.toFixed(2)} \u20AC`)
-vi.stubGlobal('INCOME_CATEGORY_COLORS', { Salaire: 'success' })
-vi.stubGlobal('EXPENSE_CATEGORY_COLORS', { Logement: 'warning' })
-vi.stubGlobal('ENVELOPE_COLOR', 'warning')
-vi.stubGlobal('useRoute', () => ({ query: {} }))
-vi.stubGlobal('useMonthNavigation', () => {
-  const yr = ref(new Date().getFullYear())
-  const mo = ref(new Date().getMonth() + 1)
-  const label = computed(() => {
-    const date = new Date(yr.value, mo.value - 1, 1)
-    return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date)
+stubNuxtAutoImports({
+  useFetch: () => ({
+    data: ref(mockData),
+    status: ref('idle'),
+    refresh: mockRefresh
   })
-  const key = computed(() => `${yr.value}-${mo.value}`)
-  function previousMonth() {
-    if (mo.value === 1) {
-      mo.value = 12
-      yr.value--
-    } else {
-      mo.value--
-    }
-  }
-  function nextMonth() {
-    if (mo.value === 12) {
-      mo.value = 1
-      yr.value++
-    } else {
-      mo.value++
-    }
-  }
-  return { selectedYear: yr, selectedMonth: mo, selectedMonthLabel: label, monthKey: key, previousMonth, nextMonth }
 })
-vi.stubGlobal('useFetch', () => ({
-  data: ref(mockData),
-  status: ref('idle'),
-  refresh: mockRefresh
-}))
 
 vi.mock('#components', () => ({
   UButton: {},

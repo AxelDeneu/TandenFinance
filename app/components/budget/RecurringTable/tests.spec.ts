@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref, computed, watch } from 'vue'
+import { ref } from 'vue'
+import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 import type { RecurringEntry, EntryType } from '~/types'
 
 vi.mock('#components', () => ({
@@ -12,22 +13,14 @@ vi.mock('#components', () => ({
 const mockToastAdd = vi.fn()
 const mockRefresh = vi.fn()
 
-vi.stubGlobal('useToast', () => ({ add: mockToastAdd }))
-vi.stubGlobal('$fetch', vi.fn())
-vi.stubGlobal('ref', ref)
-vi.stubGlobal('computed', computed)
-vi.stubGlobal('watch', watch)
-vi.stubGlobal('useTemplateRef', () => ref(null))
-vi.stubGlobal('useFetch', () => ({
-  data: ref<RecurringEntry[]>([]),
-  status: ref('idle'),
-  refresh: mockRefresh
-}))
-vi.stubGlobal('INCOME_CATEGORIES', ['Salaire', 'Freelance', 'Aide', 'Investissements', 'Autre'])
-vi.stubGlobal('EXPENSE_CATEGORIES', ['Logement', 'Abonnements', 'Dettes', 'Frais bancaires', 'Assurances', 'Transport', 'Alimentation', 'Loisirs', 'Sante', 'Education', 'Divers'])
-vi.stubGlobal('INCOME_CATEGORY_COLORS', { Salaire: 'success', Freelance: 'info', Aide: 'warning', Investissements: 'primary', Autre: 'neutral' })
-vi.stubGlobal('EXPENSE_CATEGORY_COLORS', { Logement: 'warning', Abonnements: 'info', Dettes: 'error' })
-vi.stubGlobal('formatEuro', (v: number) => `${v.toFixed(2)} \u20AC`)
+stubNuxtAutoImports({
+  useToast: () => ({ add: mockToastAdd }),
+  useFetch: () => ({
+    data: ref<RecurringEntry[]>([]),
+    status: ref('idle'),
+    refresh: mockRefresh
+  })
+})
 
 const { initBudgetRecurringTable } = await import('./init')
 

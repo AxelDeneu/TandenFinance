@@ -1,16 +1,15 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref, reactive, computed, watch, nextTick } from 'vue'
+import { ref, reactive, nextTick } from 'vue'
+import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 import { initBudgetEnvelopeModal, budgetEnvelopeSchema, type BudgetEnvelopeSchema } from './init'
 import type { FormSubmitEvent } from '@nuxt/ui'
 import type { RecurringEntry } from '~/types'
 
 const mockToastAdd = vi.fn()
 
-vi.stubGlobal('useToast', () => ({ add: mockToastAdd }))
-vi.stubGlobal('$fetch', vi.fn())
-vi.stubGlobal('reactive', reactive)
-vi.stubGlobal('computed', computed)
-vi.stubGlobal('watch', watch)
+stubNuxtAutoImports({
+  useToast: () => ({ add: mockToastAdd })
+})
 
 function createEntry(overrides: Partial<RecurringEntry> = {}): RecurringEntry {
   return {

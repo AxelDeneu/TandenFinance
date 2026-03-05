@@ -1,5 +1,6 @@
 import { describe, it, expect, vi } from 'vitest'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
+import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 import type { ForecastData } from '~/types'
 
 const mockPush = vi.fn()
@@ -31,40 +32,17 @@ const mockForecastData: ForecastData = {
 }
 
 const mockWidth = ref(800)
-vi.stubGlobal('useElementSize', () => ({ width: mockWidth }))
-vi.stubGlobal('ref', ref)
-vi.stubGlobal('computed', computed)
-vi.stubGlobal('useRouter', () => ({ push: mockPush }))
-vi.stubGlobal('useFetch', (_url: string, opts?: { default?: () => ForecastData }) => {
-  const data = ref(mockForecastData)
-  return { data, status: ref('idle'), ...(opts?.default ? {} : {}) }
-})
-vi.stubGlobal('formatEuro', (value: number) => {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value)
-})
-vi.stubGlobal('computeEffectiveTotal', (entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string) => {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += actual
-    } else {
-      total += fe.entry.amount
-    }
+
+stubNuxtAutoImports({
+  useElementSize: () => ({ width: mockWidth }),
+  useRouter: () => ({ push: mockPush }),
+  useFetch: (_url: string, opts?: { default?: () => ForecastData }) => {
+    const data = ref(mockForecastData)
+    return { data, status: ref('idle'), ...(opts?.default ? {} : {}) }
+  },
+  formatEuro: (value: number) => {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value)
   }
-  return total
-})
-vi.stubGlobal('computeEnvelopeEffectiveTotal', (entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string) => {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += Math.max(actual, fe.entry.amount)
-    } else {
-      total += fe.entry.amount
-    }
-  }
-  return total
 })
 
 const { initBudgetHistoryView } = await import('./init')

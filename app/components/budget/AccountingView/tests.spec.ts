@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref, computed, watch, reactive } from 'vue'
+import { ref } from 'vue'
+import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 import type { Transaction } from '~/types'
 
 const mockTransactions: Transaction[] = [
@@ -11,52 +12,13 @@ const mockTransactions: Transaction[] = [
 
 const mockRefresh = vi.fn()
 
-vi.stubGlobal('ref', ref)
-vi.stubGlobal('computed', computed)
-vi.stubGlobal('watch', watch)
-vi.stubGlobal('reactive', reactive)
-vi.stubGlobal('formatEuro', (v: number) => `${v.toFixed(2)} €`)
-vi.stubGlobal('INCOME_CATEGORY_COLORS', { Salaire: 'success' })
-vi.stubGlobal('EXPENSE_CATEGORY_COLORS', { Logement: 'warning' })
-vi.stubGlobal('ENVELOPE_COLOR', 'warning')
-vi.stubGlobal('getCategoryColor', (category: string, type: string) => {
-  if (type === 'income') return ({ Salaire: 'success' } as Record<string, string>)[category] ?? 'neutral'
-  return ({ Logement: 'warning' } as Record<string, string>)[category] ?? 'neutral'
-})
-vi.stubGlobal('useRoute', () => ({ query: {} }))
-vi.stubGlobal('useMonthNavigation', () => {
-  const yr = ref(new Date().getFullYear())
-  const mo = ref(new Date().getMonth() + 1)
-  const label = computed(() => {
-    const date = new Date(yr.value, mo.value - 1, 1)
-    return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date)
+stubNuxtAutoImports({
+  useFetch: () => ({
+    data: ref(mockTransactions),
+    status: ref('idle'),
+    refresh: mockRefresh
   })
-  const key = computed(() => `${yr.value}-${mo.value}`)
-  function previousMonth() {
-    if (mo.value === 1) {
-      mo.value = 12
-      yr.value--
-    } else {
-      mo.value--
-    }
-  }
-  function nextMonth() {
-    if (mo.value === 12) {
-      mo.value = 1
-      yr.value++
-    } else {
-      mo.value++
-    }
-  }
-  return { selectedYear: yr, selectedMonth: mo, selectedMonthLabel: label, monthKey: key, previousMonth, nextMonth }
 })
-vi.stubGlobal('useToast', () => ({ add: vi.fn() }))
-vi.stubGlobal('$fetch', vi.fn())
-vi.stubGlobal('useFetch', () => ({
-  data: ref(mockTransactions),
-  status: ref('idle'),
-  refresh: mockRefresh
-}))
 
 vi.mock('#components', () => ({
   UBadge: {},

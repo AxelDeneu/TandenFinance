@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref, computed, watch, reactive } from 'vue'
+import { ref } from 'vue'
+import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 import type { Transaction, RecurringEntry } from '~/types'
 
 const mockIncomes: RecurringEntry[] = [
@@ -14,18 +15,13 @@ const mockEnvelopes: RecurringEntry[] = [
   { id: 3, type: 'envelope', label: 'Courses', amount: 500, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' }
 ]
 
-vi.stubGlobal('ref', ref)
-vi.stubGlobal('computed', computed)
-vi.stubGlobal('watch', watch)
-vi.stubGlobal('reactive', reactive)
-vi.stubGlobal('useToast', () => ({ add: vi.fn() }))
-vi.stubGlobal('$fetch', vi.fn())
-
-vi.stubGlobal('useFetch', (url: string) => {
-  if (url.includes('incomes')) return { data: ref(mockIncomes), status: ref('idle') }
-  if (url.includes('expenses')) return { data: ref(mockExpenses), status: ref('idle') }
-  if (url.includes('envelopes')) return { data: ref(mockEnvelopes), status: ref('idle') }
-  return { data: ref([]), status: ref('idle') }
+stubNuxtAutoImports({
+  useFetch: (url: string) => {
+    if (url.includes('incomes')) return { data: ref(mockIncomes), status: ref('idle') }
+    if (url.includes('expenses')) return { data: ref(mockExpenses), status: ref('idle') }
+    if (url.includes('envelopes')) return { data: ref(mockEnvelopes), status: ref('idle') }
+    return { data: ref([]), status: ref('idle') }
+  }
 })
 
 const { initTransactionModal } = await import('./init')

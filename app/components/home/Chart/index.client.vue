@@ -5,8 +5,6 @@ import { initHomeChart } from './init'
 const cardRef = useTemplateRef<HTMLElement | null>('cardRef')
 
 const { width, chartData, currentMonthRemaining, x, yIncome, yExpenses, xTicks, template } = initHomeChart({ cardRef })
-
-const remainingColor = computed(() => currentMonthRemaining.value >= 0 ? 'success' : 'error')
 </script>
 
 <template>

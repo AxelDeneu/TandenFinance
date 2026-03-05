@@ -1,4 +1,4 @@
-import { eq, like } from 'drizzle-orm'
+import { eq, and, gte, lt } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 
 export default defineApiHandler(async (event) => {
@@ -30,38 +30,41 @@ export default defineApiHandler(async (event) => {
     .from(schema.recurringEntries)
     .where(eq(schema.recurringEntries.active, true))
 
-  // Fetch all transactions for the month range and aggregate by recurringEntryId + month
+  // Fetch all transactions for the entire month range in a single query
+  const firstMonth = months[0]!
+  const lastMonth = months[months.length - 1]!
+  const startDateStr = `${firstMonth.year}-${String(firstMonth.month).padStart(2, '0')}-01`
+  const endDate = new Date(lastMonth.year, lastMonth.month, 1)
+  const endDateStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-01`
+
+  const allTransactions = await db
+    .select()
+    .from(schema.transactions)
+    .where(and(gte(schema.transactions.date, startDateStr), lt(schema.transactions.date, endDateStr)))
+
+  // Aggregate by recurringEntryId + month
   const actualsByEntry = new Map<number, Map<string, number>>()
-  // Also track uncategorized transactions per month
   const uncategorizedByMonth = new Map<string, { income: number, expense: number }>()
 
-  for (const m of months) {
-    const datePrefix = `${m.year}-${String(m.month).padStart(2, '0')}`
+  for (const tx of allTransactions) {
+    const [txYear, txMonthStr] = tx.date.slice(0, 7).split('-')
+    const key = `${txYear}-${Number(txMonthStr)}`
 
-    const monthTransactions = await db
-      .select()
-      .from(schema.transactions)
-      .where(like(schema.transactions.date, `${datePrefix}%`))
-
-    for (const tx of monthTransactions) {
-      const key = `${m.year}-${m.month}`
-
-      if (tx.recurringEntryId) {
-        if (!actualsByEntry.has(tx.recurringEntryId)) {
-          actualsByEntry.set(tx.recurringEntryId, new Map())
-        }
-        const entryMap = actualsByEntry.get(tx.recurringEntryId)!
-        entryMap.set(key, (entryMap.get(key) ?? 0) + tx.amount)
+    if (tx.recurringEntryId) {
+      if (!actualsByEntry.has(tx.recurringEntryId)) {
+        actualsByEntry.set(tx.recurringEntryId, new Map())
+      }
+      const entryMap = actualsByEntry.get(tx.recurringEntryId)!
+      entryMap.set(key, (entryMap.get(key) ?? 0) + tx.amount)
+    } else {
+      if (!uncategorizedByMonth.has(key)) {
+        uncategorizedByMonth.set(key, { income: 0, expense: 0 })
+      }
+      const uncat = uncategorizedByMonth.get(key)!
+      if (tx.type === 'income') {
+        uncat.income += tx.amount
       } else {
-        if (!uncategorizedByMonth.has(key)) {
-          uncategorizedByMonth.set(key, { income: 0, expense: 0 })
-        }
-        const uncat = uncategorizedByMonth.get(key)!
-        if (tx.type === 'income') {
-          uncat.income += tx.amount
-        } else {
-          uncat.expense += tx.amount
-        }
+        uncat.expense += tx.amount
       }
     }
   }

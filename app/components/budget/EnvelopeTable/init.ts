@@ -2,6 +2,7 @@ import { h, type Component } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { getPaginationRowModel } from '@tanstack/table-core'
 import { UButton, USwitch, UDropdownMenu } from '#components'
+import { sortableHeader } from '~/utils/table'
 import type { RecurringEntry } from '~/types'
 
 interface BudgetEnvelopeTableContext {
@@ -103,44 +104,14 @@ export function initBudgetEnvelopeTable(ctx: BudgetEnvelopeTableContext) {
   const columns: TableColumn<RecurringEntry>[] = [
     {
       accessorKey: 'label',
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted()
-
-        return h(UButton, {
-          color: 'neutral',
-          variant: 'ghost',
-          label: 'Libellé',
-          icon: isSorted
-            ? isSorted === 'asc'
-              ? 'i-lucide-arrow-up-narrow-wide'
-              : 'i-lucide-arrow-down-wide-narrow'
-            : 'i-lucide-arrow-up-down',
-          class: '-mx-2.5',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
-        })
-      },
+      header: sortableHeader('Libellé'),
       cell: ({ row }) => {
         return h('span', { class: 'font-medium text-highlighted' }, row.original.label)
       }
     },
     {
       accessorKey: 'amount',
-      header: ({ column }) => {
-        const isSorted = column.getIsSorted()
-
-        return h(UButton, {
-          color: 'neutral',
-          variant: 'ghost',
-          label: 'Montant',
-          icon: isSorted
-            ? isSorted === 'asc'
-              ? 'i-lucide-arrow-up-narrow-wide'
-              : 'i-lucide-arrow-down-wide-narrow'
-            : 'i-lucide-arrow-up-down',
-          class: '-mx-2.5',
-          onClick: () => column.toggleSorting(column.getIsSorted() === 'asc')
-        })
-      },
+      header: sortableHeader('Montant'),
       cell: ({ row }) => {
         return h('span', { class: 'text-right font-medium tabular-nums' }, formatEuro(row.original.amount))
       }

@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from 'vitest'
-import { ref, computed } from 'vue'
+import { describe, expect, it } from 'vitest'
+import { ref } from 'vue'
+import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 import type { ForecastData } from '~/types'
 
 const mockForecastData: ForecastData = {
@@ -28,53 +29,36 @@ const mockForecastData: ForecastData = {
   ]
 }
 
-// Mock Nuxt auto-imports
-vi.stubGlobal('useAsyncData', async (_key: string, _fn: () => Promise<ForecastData>, opts?: { default?: () => ForecastData }) => {
-  const data = ref(mockForecastData)
-  return { data, ...(opts?.default ? {} : {}) }
-})
-
-vi.stubGlobal('computed', computed)
-
-vi.stubGlobal('formatEuro', (value: number) => {
-  return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value)
-})
-
-vi.stubGlobal('$fetch', async () => mockForecastData)
-
-// Stub composable auto-imports
-function _computeEffectiveTotal(entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string): number {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += actual
-    } else {
-      total += fe.entry.amount
-    }
+stubNuxtAutoImports({
+  useAsyncData: async (_key: string, _fn: () => Promise<ForecastData>, opts?: { default?: () => ForecastData }) => {
+    const data = ref(mockForecastData)
+    return { data, ...(opts?.default ? {} : {}) }
+  },
+  $fetch: async () => mockForecastData,
+  formatEuro: (value: number) => {
+    return new Intl.NumberFormat('fr-FR', { style: 'currency', currency: 'EUR' }).format(value)
   }
-  return total
-}
-
-function _computeEnvelopeEffectiveTotal(entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string): number {
-  let total = 0
-  for (const fe of entries) {
-    const actual = fe.actuals[monthKey]
-    if (actual !== null && actual !== undefined) {
-      total += Math.max(actual, fe.entry.amount)
-    } else {
-      total += fe.entry.amount
-    }
-  }
-  return total
-}
-
-vi.stubGlobal('computeEffectiveTotal', _computeEffectiveTotal)
-vi.stubGlobal('computeEnvelopeEffectiveTotal', _computeEnvelopeEffectiveTotal)
+})
 
 const { initHomeStats } = await import('./init')
-const computeEffectiveTotal = _computeEffectiveTotal
-const computeEnvelopeEffectiveTotal = _computeEnvelopeEffectiveTotal
+
+function computeEffectiveTotal(entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string): number {
+  let total = 0
+  for (const fe of entries) {
+    const actual = fe.actuals[monthKey]
+    total += (actual !== null && actual !== undefined) ? actual : fe.entry.amount
+  }
+  return total
+}
+
+function computeEnvelopeEffectiveTotal(entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string): number {
+  let total = 0
+  for (const fe of entries) {
+    const actual = fe.actuals[monthKey]
+    total += (actual !== null && actual !== undefined) ? Math.max(actual, fe.entry.amount) : fe.entry.amount
+  }
+  return total
+}
 
 describe('initHomeStats', () => {
   it('should return stats and leadingClasses', async () => {
