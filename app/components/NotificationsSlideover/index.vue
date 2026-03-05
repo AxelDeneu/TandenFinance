@@ -1,7 +1,30 @@
 <script setup lang="ts">
 import { initNotificationsSlideover } from './init'
 
-const { isNotificationsSlideoverOpen, notifications, formatTimeAgo } = initNotificationsSlideover()
+const router = useRouter()
+const {
+  isNotificationsSlideoverOpen,
+  notifications,
+  unreadCount,
+  markAsRead,
+  markAllAsRead,
+  formatTimeAgo
+} = initNotificationsSlideover()
+
+function onNotificationClick(notification: typeof notifications.value[number]) {
+  markAsRead(notification)
+  if (notification.actionUrl) {
+    router.push(notification.actionUrl)
+    isNotificationsSlideoverOpen.value = false
+  }
+}
+
+const colorMap: Record<string, string> = {
+  error: 'text-error',
+  warning: 'text-warning',
+  success: 'text-success',
+  info: 'text-info'
+}
 </script>
 
 <template>
@@ -9,41 +32,67 @@ const { isNotificationsSlideoverOpen, notifications, formatTimeAgo } = initNotif
     v-model:open="isNotificationsSlideoverOpen"
     title="Notifications"
   >
+    <template #header>
+      <div class="flex items-center justify-between w-full">
+        <div class="flex items-center gap-2">
+          <span class="text-lg font-semibold">Notifications</span>
+          <UBadge
+            v-if="unreadCount > 0"
+            color="error"
+            variant="subtle"
+            size="xs"
+          >
+            {{ unreadCount }}
+          </UBadge>
+        </div>
+        <UButton
+          v-if="unreadCount > 0"
+          label="Tout marquer lu"
+          variant="ghost"
+          color="neutral"
+          size="xs"
+          icon="i-lucide-check-check"
+          @click="markAllAsRead"
+        />
+      </div>
+    </template>
+
     <template #body>
-      <NuxtLink
+      <div v-if="!notifications?.length" class="text-center text-muted py-8">
+        Aucune notification.
+      </div>
+
+      <button
         v-for="notification in notifications"
         :key="notification.id"
-        to="/"
-        class="px-3 py-2.5 rounded-md hover:bg-elevated/50 flex items-center gap-3 relative -mx-3 first:-mt-3 last:-mb-3"
+        class="w-full text-left px-3 py-2.5 rounded-md hover:bg-elevated/50 flex items-center gap-3 relative -mx-3 first:-mt-3 last:-mb-3"
+        @click="onNotificationClick(notification)"
       >
-        <UChip
-          color="error"
-          :show="!!notification.unread"
-          inset
-        >
-          <UAvatar
-            v-bind="notification.sender.avatar"
-            :alt="notification.sender.name"
-            size="md"
+        <div class="relative">
+          <UIcon
+            :name="notification.icon ?? 'i-lucide-bell'"
+            :class="[colorMap[notification.color ?? ''] ?? 'text-muted', 'text-lg']"
           />
-        </UChip>
+          <span
+            v-if="!notification.read"
+            class="absolute -top-0.5 -right-0.5 size-2 rounded-full bg-error"
+          />
+        </div>
 
-        <div class="text-sm flex-1">
-          <p class="flex items-center justify-between">
-            <span class="text-highlighted font-medium">{{ notification.sender.name }}</span>
-
+        <div class="text-sm flex-1 min-w-0">
+          <p class="flex items-center justify-between gap-2">
+            <span class="text-highlighted font-medium truncate">{{ notification.title }}</span>
             <time
-              :datetime="notification.date"
-              class="text-muted text-xs"
-              v-text="formatTimeAgo(new Date(notification.date))"
+              :datetime="notification.createdAt"
+              class="text-muted text-xs shrink-0"
+              v-text="formatTimeAgo(new Date(notification.createdAt))"
             />
           </p>
-
-          <p class="text-dimmed">
+          <p class="text-dimmed truncate">
             {{ notification.body }}
           </p>
         </div>
-      </NuxtLink>
+      </button>
     </template>
   </USlideover>
 </template>

@@ -13,6 +13,15 @@ export const recurringEntries = pgTable('recurring_entries', {
   updatedAt: timestamp('updated_at').notNull()
 })
 
+export const importBatches = pgTable('import_batches', {
+  id: serial().primaryKey(),
+  filename: text().notNull(),
+  rowCount: integer('row_count').notNull(),
+  importedCount: integer('imported_count').notNull().default(0),
+  skippedCount: integer('skipped_count').notNull().default(0),
+  createdAt: timestamp('created_at').notNull()
+})
+
 export const transactions = pgTable('transactions', {
   id: serial().primaryKey(),
   label: text().notNull(),
@@ -20,7 +29,30 @@ export const transactions = pgTable('transactions', {
   type: text({ enum: ['income', 'expense'] }).notNull(),
   date: text().notNull(),
   recurringEntryId: integer('recurring_entry_id').references(() => recurringEntries.id, { onDelete: 'set null' }),
+  importBatchId: integer('import_batch_id').references(() => importBatches.id, { onDelete: 'set null' }),
   notes: text(),
   createdAt: timestamp('created_at').notNull(),
   updatedAt: timestamp('updated_at').notNull()
+})
+
+export const budgetRules = pgTable('budget_rules', {
+  id: serial().primaryKey(),
+  label: text().notNull(),
+  type: text({ enum: ['envelope_exceeded', 'remaining_low', 'category_threshold'] }).notNull(),
+  config: text().notNull(),
+  active: boolean().notNull().default(true),
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull()
+})
+
+export const notifications = pgTable('notifications', {
+  id: serial().primaryKey(),
+  ruleId: integer('rule_id').references(() => budgetRules.id, { onDelete: 'cascade' }),
+  title: text().notNull(),
+  body: text().notNull(),
+  icon: text(),
+  color: text(),
+  read: boolean().notNull().default(false),
+  actionUrl: text('action_url'),
+  createdAt: timestamp('created_at').notNull()
 })

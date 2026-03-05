@@ -28,12 +28,37 @@ export interface Sale {
   amount: number
 }
 
+export type BudgetRuleType = 'envelope_exceeded' | 'remaining_low' | 'category_threshold'
+
+export interface BudgetRule {
+  id: number
+  label: string
+  type: BudgetRuleType
+  config: string
+  active: boolean
+  createdAt: string
+  updatedAt: string
+}
+
 export interface Notification {
   id: number
-  unread?: boolean
-  sender: User
+  ruleId: number | null
+  title: string
   body: string
-  date: string
+  icon: string | null
+  color: string | null
+  read: boolean
+  actionUrl: string | null
+  createdAt: string
+}
+
+export interface ImportBatch {
+  id: number
+  filename: string
+  rowCount: number
+  importedCount: number
+  skippedCount: number
+  createdAt: string
 }
 
 export type Period = 'daily' | 'weekly' | 'monthly'
@@ -102,4 +127,40 @@ export interface MonthlySummary {
   envelopeEffective: number
   remaining: number
   remainingPlanned: number
+}
+
+// Analytics types
+export interface AnalyticsSummary {
+  averageMonthlyIncome: number
+  averageMonthlyExpense: number
+  averageMonthlySavings: number
+  savingsRate: number
+  topGrowingCategories: { category: string, growthPercent: number }[]
+  topShrinkingCategories: { category: string, shrinkPercent: number }[]
+  bestMonth: { label: string, savings: number }
+  worstMonth: { label: string, savings: number }
+}
+
+export interface CategoryTrendItem {
+  category: string
+  type: 'income' | 'expense'
+  monthlyAmounts: { month: string, amount: number }[]
+  average: number
+  trend: 'rising' | 'stable' | 'falling'
+}
+
+export interface CategoryBreakdownItem {
+  category: string
+  amount: number
+  percent: number
+  color: string
+}
+
+// Import CSV types
+export interface ImportParsedRow {
+  rawLabel: string
+  date: string
+  amount: number
+  type: 'income' | 'expense'
+  suggestedMatch: { recurringEntryId: number, label: string, confidence: number } | null
 }

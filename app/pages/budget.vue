@@ -18,6 +18,14 @@ const links = [[{
   label: 'Historique',
   icon: 'i-lucide-history',
   to: '/budget/historique'
+}, {
+  label: 'Analyse',
+  icon: 'i-lucide-bar-chart-3',
+  to: '/budget/analyse'
+}, {
+  label: 'Alertes',
+  icon: 'i-lucide-bell',
+  to: '/budget/alertes'
 }]] satisfies NavigationMenuItem[][]
 </script>
 

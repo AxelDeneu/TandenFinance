@@ -3,7 +3,6 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 import type { Transaction } from '~/types'
 
 const router = useRouter()
-const toast = useToast()
 
 const open = ref(false)
 const collapsed = ref(true)
@@ -28,37 +27,48 @@ const links = [{
     open.value = false
   }
 }, {
-  label: 'Budget',
-  icon: 'i-lucide-wallet',
+  label: 'Configuration',
+  icon: 'i-lucide-settings',
   to: '/budget',
-  defaultOpen: true,
-  type: 'trigger',
-  children: [{
-    label: 'Configuration',
-    to: '/budget',
-    exact: true,
-    onSelect: () => {
-      open.value = false
-    }
-  }, {
-    label: 'Comptabilité',
-    to: '/budget/comptabilite',
-    onSelect: () => {
-      open.value = false
-    }
-  }, {
-    label: 'Prévisionnel',
-    to: '/budget/previsionnel',
-    onSelect: () => {
-      open.value = false
-    }
-  }, {
-    label: 'Historique',
-    to: '/budget/historique',
-    onSelect: () => {
-      open.value = false
-    }
-  }]
+  exact: true,
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Comptabilité',
+  icon: 'i-lucide-receipt',
+  to: '/budget/comptabilite',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Prévisionnel',
+  icon: 'i-lucide-calendar-range',
+  to: '/budget/previsionnel',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Historique',
+  icon: 'i-lucide-history',
+  to: '/budget/historique',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Analyse',
+  icon: 'i-lucide-bar-chart-3',
+  to: '/budget/analyse',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Alertes',
+  icon: 'i-lucide-bell',
+  to: '/budget/alertes',
+  onSelect: () => {
+    open.value = false
+  }
 }] satisfies NavigationMenuItem[]
 
 const searchTerm = ref('')
@@ -72,7 +82,7 @@ const { data: searchResults, status: searchStatus } = useFetch<Transaction[]>('/
 interface SearchGroup {
   id: string
   label: string
-  items: { label: string, suffix?: string, icon?: string, to?: string, onSelect?: () => void, type?: string, defaultOpen?: boolean, children?: { label: string, to?: string, exact?: boolean, onSelect?: () => void }[] }[]
+  items: { label: string, suffix?: string, icon?: string, to?: string, onSelect?: () => void }[]
 }
 
 const groups = computed<SearchGroup[]>(() => {
@@ -104,31 +114,6 @@ const groups = computed<SearchGroup[]>(() => {
 
   return g
 })
-
-onMounted(async () => {
-  const cookie = useCookie('cookie-consent')
-  if (cookie.value === 'accepted') {
-    return
-  }
-
-  toast.add({
-    title: 'Nous utilisons des cookies pour améliorer votre expérience.',
-    duration: 0,
-    close: false,
-    actions: [{
-      label: 'Accepter',
-      color: 'neutral',
-      variant: 'outline',
-      onClick: () => {
-        cookie.value = 'accepted'
-      }
-    }, {
-      label: 'Refuser',
-      color: 'neutral',
-      variant: 'ghost'
-    }]
-  })
-})
 </script>
 
 <template>
@@ -157,7 +142,6 @@ onMounted(async () => {
           :items="links"
           orientation="vertical"
           tooltip
-          popover
         />
       </template>
     </UDashboardSidebar>

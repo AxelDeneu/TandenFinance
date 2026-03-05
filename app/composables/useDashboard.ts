@@ -11,6 +11,8 @@ const _useDashboard = () => {
     'g-c': () => router.push('/budget/comptabilite'),
     'g-p': () => router.push('/budget/previsionnel'),
     'g-t': () => router.push('/budget/historique'),
+    'g-n': () => router.push('/budget/analyse'),
+    'g-a': () => router.push('/budget/alertes'),
     'n': () => isNotificationsSlideoverOpen.value = !isNotificationsSlideoverOpen.value
   })
 

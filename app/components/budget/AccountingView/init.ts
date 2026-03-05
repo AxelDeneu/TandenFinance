@@ -75,9 +75,10 @@ export function initBudgetAccountingView() {
 
   const balance = computed(() => totalIncome.value - totalExpense.value)
 
-  // Modal
+  // Modals
   const modalOpen = ref(false)
   const editingTransaction = ref<Transaction | null>(null)
+  const importModalOpen = ref(false)
 
   function openCreateModal() {
     editingTransaction.value = null
@@ -194,6 +195,10 @@ export function initBudgetAccountingView() {
     }
   ]
 
+  function onImported() {
+    refresh()
+  }
+
   return {
     selectedYear,
     selectedMonth,
@@ -215,10 +220,12 @@ export function initBudgetAccountingView() {
     balance,
     modalOpen,
     editingTransaction,
+    importModalOpen,
     openCreateModal,
     openEditModal,
     deleteTransaction,
     onTransactionSaved,
+    onImported,
     columns
   }
 }

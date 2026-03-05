@@ -1,5 +1,5 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
-import { ref } from 'vue'
+import { computed, ref } from 'vue'
 import { initNotificationsSlideover } from './init'
 
 vi.mock('@vueuse/core', () => ({
@@ -17,23 +17,30 @@ vi.mock('~/composables/useDashboard', () => ({
 const mockNotifications = ref([
   {
     id: 1,
-    unread: true,
-    sender: { name: 'John', avatar: { src: '/john.png' } },
+    ruleId: null,
+    title: 'Test alert',
     body: 'Test notification',
-    date: '2024-01-01'
+    icon: 'i-lucide-bell',
+    color: 'warning',
+    read: false,
+    actionUrl: '/budget',
+    createdAt: '2024-01-01'
   }
 ])
 
+const mockRefresh = vi.fn()
+
 vi.mock('#app', () => ({
-  useFetch: vi.fn(() => ({ data: mockNotifications }))
+  useFetch: vi.fn(() => ({ data: mockNotifications, refresh: mockRefresh }))
 }))
 
 // Stub Nuxt auto-imports
+vi.stubGlobal('computed', computed)
 vi.stubGlobal('useDashboard', () => ({
   isNotificationsSlideoverOpen: mockIsNotificationsSlideoverOpen
 }))
-
-vi.stubGlobal('useFetch', vi.fn(() => ({ data: mockNotifications })))
+vi.stubGlobal('useFetch', vi.fn(() => ({ data: mockNotifications, refresh: mockRefresh })))
+vi.stubGlobal('$fetch', vi.fn())
 
 describe('initNotificationsSlideover', () => {
   beforeEach(() => {
@@ -41,10 +48,14 @@ describe('initNotificationsSlideover', () => {
     mockNotifications.value = [
       {
         id: 1,
-        unread: true,
-        sender: { name: 'John', avatar: { src: '/john.png' } },
+        ruleId: null,
+        title: 'Test alert',
         body: 'Test notification',
-        date: '2024-01-01'
+        icon: 'i-lucide-bell',
+        color: 'warning',
+        read: false,
+        actionUrl: '/budget',
+        createdAt: '2024-01-01'
       }
     ]
   })
@@ -59,7 +70,12 @@ describe('initNotificationsSlideover', () => {
     const result = initNotificationsSlideover()
     expect(result.notifications).toBeDefined()
     expect(result.notifications.value).toHaveLength(1)
-    expect(result.notifications.value![0].sender.name).toBe('John')
+    expect(result.notifications.value![0].title).toBe('Test alert')
+  })
+
+  it('should return unreadCount computed', () => {
+    const result = initNotificationsSlideover()
+    expect(result.unreadCount.value).toBe(1)
   })
 
   it('should return formatTimeAgo function', () => {

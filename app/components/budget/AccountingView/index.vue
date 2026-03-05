@@ -16,8 +16,10 @@ const {
   balance,
   modalOpen,
   editingTransaction,
+  importModalOpen,
   openCreateModal,
   onTransactionSaved,
+  onImported,
   columns
 } = initBudgetAccountingView()
 
@@ -87,12 +89,21 @@ const typeFilterOptions = [
           @click="nextMonth"
         />
       </div>
-      <UButton
-        label="Ajouter"
-        icon="i-lucide-plus"
-        color="primary"
-        @click="openCreateModal"
-      />
+      <div class="flex items-center gap-2">
+        <UButton
+          label="Importer CSV"
+          icon="i-lucide-upload"
+          color="neutral"
+          variant="subtle"
+          @click="importModalOpen = true"
+        />
+        <UButton
+          label="Ajouter"
+          icon="i-lucide-plus"
+          color="primary"
+          @click="openCreateModal"
+        />
+      </div>
     </div>
 
     <!-- Summary Cards -->
@@ -163,6 +174,12 @@ const typeFilterOptions = [
       v-model:open="modalOpen"
       :transaction="editingTransaction"
       @saved="onTransactionSaved"
+    />
+
+    <!-- Import CSV Modal -->
+    <BudgetImportModal
+      v-model:open="importModalOpen"
+      @imported="onImported"
     />
   </div>
 </template>
