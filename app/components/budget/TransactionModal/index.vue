@@ -64,12 +64,15 @@ const selectedCategoryLabel = computed({
         @submit="onSubmit"
       >
         <UFormField label="Libellé" name="label">
-          <UInputMenu
+          <UInput
             v-model="state.label"
-            :items="existingLabels"
             placeholder="Ex: Courses Carrefour..."
             class="w-full"
+            list="label-suggestions"
           />
+          <datalist id="label-suggestions">
+            <option v-for="l in existingLabels" :key="l" :value="l" />
+          </datalist>
         </UFormField>
 
         <UFormField label="Montant" name="amount">
