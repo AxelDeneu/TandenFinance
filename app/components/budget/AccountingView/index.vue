@@ -8,6 +8,7 @@ const {
   status,
   typeFilter,
   searchQuery,
+  filteredTransactions,
   paginatedTransactions,
   page,
   totalPages,
@@ -162,9 +163,9 @@ const typeFilterOptions = [
       <!-- Pagination -->
       <div v-if="totalPages > 1" class="flex justify-center">
         <UPagination
-          v-model="page"
-          :total="totalPages"
-          :items-per-page="1"
+          v-model:page="page"
+          :total="filteredTransactions.length"
+          :items-per-page="10"
         />
       </div>
     </template>
