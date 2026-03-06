@@ -7,7 +7,15 @@ const {
   nextMonth,
   status,
   typeFilter,
+  categoryFilter,
   searchQuery,
+  availableCategories,
+  amountMin,
+  amountMax,
+  uncategorizedOnly,
+  activeFilterCount,
+  hasActiveFilters,
+  resetFilters,
   filteredTransactions,
   paginatedTransactions,
   page,
@@ -128,17 +136,85 @@ const typeFilterOptions = [
     </UPageGrid>
 
     <!-- Filters -->
-    <div class="flex items-center gap-3">
+    <div class="flex flex-wrap items-center gap-3">
       <UInput
         v-model="searchQuery"
         icon="i-lucide-search"
-        placeholder="Rechercher..."
+        placeholder="Rechercher label ou notes..."
         class="w-64"
       />
       <USelect
         v-model="typeFilter"
         :items="typeFilterOptions"
         class="w-40"
+      />
+      <USelect
+        v-model="categoryFilter"
+        :items="availableCategories"
+        placeholder="Catégorie"
+        class="w-44"
+        :disabled="uncategorizedOnly"
+        :trailing-icon="categoryFilter ? 'i-lucide-x' : undefined"
+        @click:trailing="categoryFilter = null"
+      />
+
+      <UPopover>
+        <UButton
+          icon="i-lucide-sliders-horizontal"
+          label="Plus de filtres"
+          color="neutral"
+          variant="subtle"
+        >
+          <template #trailing>
+            <UBadge
+              v-if="activeFilterCount > 0"
+              :label="String(activeFilterCount)"
+              color="primary"
+              size="xs"
+              class="rounded-full"
+            />
+          </template>
+        </UButton>
+
+        <template #content>
+          <div class="p-4 space-y-4 w-72">
+            <div class="space-y-2">
+              <span class="text-sm font-medium">Montant</span>
+              <div class="flex items-center gap-2">
+                <UInput
+                  v-model="amountMin"
+                  type="number"
+                  placeholder="Min"
+                  step="0.01"
+                  class="w-full"
+                />
+                <span class="text-muted">-</span>
+                <UInput
+                  v-model="amountMax"
+                  type="number"
+                  placeholder="Max"
+                  step="0.01"
+                  class="w-full"
+                />
+              </div>
+            </div>
+
+            <div class="flex items-center justify-between">
+              <span class="text-sm">Non catégorisé uniquement</span>
+              <USwitch v-model="uncategorizedOnly" />
+            </div>
+          </div>
+        </template>
+      </UPopover>
+
+      <UButton
+        v-if="hasActiveFilters"
+        icon="i-lucide-x"
+        label="Réinitialiser"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        @click="resetFilters"
       />
     </div>
 

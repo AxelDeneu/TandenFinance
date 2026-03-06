@@ -37,7 +37,8 @@ stubNuxtAutoImports({
 
 vi.mock('#components', () => ({
   UButton: {},
-  UBadge: {}
+  UBadge: {},
+  UIcon: {}
 }))
 
 const { initBudgetForecastTable } = await import('./init')
@@ -72,7 +73,9 @@ describe('initBudgetForecastTable', () => {
       'incomeTotals',
       'expenseTotals',
       'envelopeTotals',
-      'remaining'
+      'remaining',
+      'selectedEntry',
+      'entryDetailOpen'
     ]
 
     for (const key of expectedKeys) {

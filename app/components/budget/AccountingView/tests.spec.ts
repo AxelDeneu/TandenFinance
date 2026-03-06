@@ -40,6 +40,9 @@ describe('initBudgetAccountingView', () => {
       'previousMonth', 'nextMonth',
       'transactions', 'status', 'refresh',
       'typeFilter', 'categoryFilter', 'searchQuery',
+      'availableCategories', 'amountMin', 'amountMax',
+      'uncategorizedOnly', 'activeFilterCount',
+      'hasActiveFilters', 'resetFilters',
       'filteredTransactions', 'paginatedTransactions',
       'page', 'totalPages',
       'totalIncome', 'totalExpense', 'balance',
@@ -104,21 +107,141 @@ describe('initBudgetAccountingView', () => {
     expect(filteredTransactions.value).toHaveLength(4)
   })
 
-  it('filters by category (recurringEntryId)', () => {
+  it('filters by category string', () => {
     const { categoryFilter, filteredTransactions } = initBudgetAccountingView()
 
-    // Filter uncategorized
-    categoryFilter.value = 0
-    expect(filteredTransactions.value).toHaveLength(1)
-    expect(filteredTransactions.value[0].label).toBe('Imprévu garage')
-
-    // Filter by specific entry
-    categoryFilter.value = 1
+    categoryFilter.value = 'Salaire'
     expect(filteredTransactions.value).toHaveLength(1)
     expect(filteredTransactions.value[0].label).toBe('Salaire')
 
+    categoryFilter.value = 'Logement'
+    expect(filteredTransactions.value).toHaveLength(1)
+    expect(filteredTransactions.value[0].label).toBe('Loyer')
+
     categoryFilter.value = null
     expect(filteredTransactions.value).toHaveLength(4)
+  })
+
+  it('filters uncategorized only', () => {
+    const { uncategorizedOnly, filteredTransactions } = initBudgetAccountingView()
+
+    uncategorizedOnly.value = true
+    expect(filteredTransactions.value).toHaveLength(1)
+    expect(filteredTransactions.value[0].label).toBe('Imprévu garage')
+
+    uncategorizedOnly.value = false
+    expect(filteredTransactions.value).toHaveLength(4)
+  })
+
+  it('searches in notes too', () => {
+    const { searchQuery, filteredTransactions } = initBudgetAccountingView()
+
+    searchQuery.value = 'voiture'
+    expect(filteredTransactions.value).toHaveLength(1)
+    expect(filteredTransactions.value[0].label).toBe('Imprévu garage')
+
+    searchQuery.value = ''
+    expect(filteredTransactions.value).toHaveLength(4)
+  })
+
+  it('filters by amount min', () => {
+    const { amountMin, filteredTransactions } = initBudgetAccountingView()
+
+    amountMin.value = 200
+    expect(filteredTransactions.value).toHaveLength(2)
+    expect(filteredTransactions.value.map(t => t.label).sort()).toEqual(['Loyer', 'Salaire'])
+
+    amountMin.value = null
+    expect(filteredTransactions.value).toHaveLength(4)
+  })
+
+  it('filters by amount max', () => {
+    const { amountMax, filteredTransactions } = initBudgetAccountingView()
+
+    amountMax.value = 100
+    expect(filteredTransactions.value).toHaveLength(1)
+    expect(filteredTransactions.value[0].label).toBe('Courses Carrefour')
+
+    amountMax.value = null
+    expect(filteredTransactions.value).toHaveLength(4)
+  })
+
+  it('filters by amount range', () => {
+    const { amountMin, amountMax, filteredTransactions } = initBudgetAccountingView()
+
+    amountMin.value = 100
+    amountMax.value = 800
+    expect(filteredTransactions.value).toHaveLength(2)
+    expect(filteredTransactions.value.map(t => t.label).sort()).toEqual(['Imprévu garage', 'Loyer'])
+
+    amountMin.value = null
+    amountMax.value = null
+  })
+
+  it('computes availableCategories from transactions', () => {
+    const { availableCategories } = initBudgetAccountingView()
+
+    const values = availableCategories.value.map(c => c.value)
+    expect(values).not.toContain('')
+    expect(values).toContain('Salaire')
+    expect(values).toContain('Logement')
+    // Envelope has no category
+    expect(values).not.toContain(null)
+  })
+
+  it('computes hasActiveFilters correctly', () => {
+    const { hasActiveFilters, typeFilter, amountMin } = initBudgetAccountingView()
+
+    expect(hasActiveFilters.value).toBe(false)
+
+    typeFilter.value = 'income'
+    expect(hasActiveFilters.value).toBe(true)
+
+    typeFilter.value = 'all'
+    expect(hasActiveFilters.value).toBe(false)
+
+    amountMin.value = 50
+    expect(hasActiveFilters.value).toBe(true)
+    amountMin.value = null
+  })
+
+  it('computes activeFilterCount for secondary filters', () => {
+    const { activeFilterCount, amountMin, amountMax, uncategorizedOnly } = initBudgetAccountingView()
+
+    expect(activeFilterCount.value).toBe(0)
+
+    amountMin.value = 10
+    expect(activeFilterCount.value).toBe(1)
+
+    amountMax.value = 500
+    expect(activeFilterCount.value).toBe(2)
+
+    uncategorizedOnly.value = true
+    expect(activeFilterCount.value).toBe(3)
+
+    amountMin.value = null
+    amountMax.value = null
+    uncategorizedOnly.value = false
+  })
+
+  it('resetFilters clears all filters', () => {
+    const { resetFilters, typeFilter, categoryFilter, searchQuery, amountMin, amountMax, uncategorizedOnly } = initBudgetAccountingView()
+
+    typeFilter.value = 'income'
+    categoryFilter.value = 'Salaire'
+    searchQuery.value = 'test'
+    amountMin.value = 10
+    amountMax.value = 500
+    uncategorizedOnly.value = true
+
+    resetFilters()
+
+    expect(typeFilter.value).toBe('all')
+    expect(categoryFilter.value).toBeNull()
+    expect(searchQuery.value).toBe('')
+    expect(amountMin.value).toBeNull()
+    expect(amountMax.value).toBeNull()
+    expect(uncategorizedOnly.value).toBe(false)
   })
 
   it('paginates correctly', () => {

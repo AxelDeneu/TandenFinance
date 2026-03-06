@@ -2,6 +2,8 @@
 import { initBudgetForecastTable } from './init'
 
 const {
+  selectedYear,
+  selectedMonth,
   selectedMonthLabel,
   status,
   previousMonth,
@@ -15,7 +17,9 @@ const {
   incomeTotals,
   expenseTotals,
   envelopeTotals,
-  remaining
+  remaining,
+  selectedEntry,
+  entryDetailOpen
 } = initBudgetForecastTable()
 
 const tableUi = {
@@ -202,5 +206,13 @@ const summaryStats = computed(() => [
         </span>
       </div>
     </template>
+
+    <!-- Entry Detail Slideover -->
+    <BudgetRecurringEntryDetail
+      v-model:open="entryDetailOpen"
+      :entry="selectedEntry"
+      :year="selectedYear"
+      :month="selectedMonth"
+    />
   </div>
 </template>

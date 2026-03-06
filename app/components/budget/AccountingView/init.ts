@@ -18,8 +18,20 @@ export function initBudgetAccountingView() {
 
   // Filters
   const typeFilter = ref<'all' | 'income' | 'expense'>('all')
-  const categoryFilter = ref<number | null>(null)
+  const categoryFilter = ref<string | null>(null)
   const searchQuery = ref('')
+  const amountMin = ref<number | null>(null)
+  const amountMax = ref<number | null>(null)
+  const uncategorizedOnly = ref(false)
+
+  const availableCategories = computed(() => {
+    const cats = new Set<string>()
+    for (const t of transactions.value) {
+      const cat = t.recurringEntry?.category
+      if (cat) cats.add(cat)
+    }
+    return Array.from(cats).sort().map(c => ({ label: c, value: c }))
+  })
 
   const filteredTransactions = computed(() => {
     let result = transactions.value
@@ -28,21 +40,56 @@ export function initBudgetAccountingView() {
       result = result.filter(t => t.type === typeFilter.value)
     }
 
-    if (categoryFilter.value !== null) {
-      if (categoryFilter.value === 0) {
-        result = result.filter(t => t.recurringEntryId === null)
-      } else {
-        result = result.filter(t => t.recurringEntryId === categoryFilter.value)
-      }
+    if (uncategorizedOnly.value) {
+      result = result.filter(t => t.recurringEntryId === null)
+    } else if (categoryFilter.value) {
+      result = result.filter(t => t.recurringEntry?.category === categoryFilter.value)
     }
 
     if (searchQuery.value) {
       const q = searchQuery.value.toLowerCase()
-      result = result.filter(t => t.label.toLowerCase().includes(q))
+      result = result.filter(t =>
+        t.label.toLowerCase().includes(q)
+        || (t.notes && t.notes.toLowerCase().includes(q))
+      )
+    }
+
+    if (amountMin.value !== null) {
+      result = result.filter(t => t.amount >= amountMin.value!)
+    }
+
+    if (amountMax.value !== null) {
+      result = result.filter(t => t.amount <= amountMax.value!)
     }
 
     return result
   })
+
+  const activeFilterCount = computed(() => {
+    let count = 0
+    if (amountMin.value !== null) count++
+    if (amountMax.value !== null) count++
+    if (uncategorizedOnly.value) count++
+    return count
+  })
+
+  const hasActiveFilters = computed(() => {
+    return typeFilter.value !== 'all'
+      || !!categoryFilter.value
+      || searchQuery.value !== ''
+      || amountMin.value !== null
+      || amountMax.value !== null
+      || uncategorizedOnly.value
+  })
+
+  function resetFilters() {
+    typeFilter.value = 'all'
+    categoryFilter.value = null
+    searchQuery.value = ''
+    amountMin.value = null
+    amountMax.value = null
+    uncategorizedOnly.value = false
+  }
 
   // Pagination
   const page = ref(1)
@@ -56,7 +103,7 @@ export function initBudgetAccountingView() {
   const totalPages = computed(() => Math.max(1, Math.ceil(filteredTransactions.value.length / pageSize)))
 
   // Reset page when filters change
-  watch([typeFilter, categoryFilter, searchQuery, selectedYear, selectedMonth], () => {
+  watch([typeFilter, categoryFilter, searchQuery, amountMin, amountMax, uncategorizedOnly, selectedYear, selectedMonth], () => {
     page.value = 1
   })
 
@@ -218,6 +265,13 @@ export function initBudgetAccountingView() {
     totalIncome,
     totalExpense,
     balance,
+    availableCategories,
+    amountMin,
+    amountMax,
+    uncategorizedOnly,
+    activeFilterCount,
+    hasActiveFilters,
+    resetFilters,
     modalOpen,
     editingTransaction,
     importModalOpen,

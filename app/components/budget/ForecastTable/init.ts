@@ -1,11 +1,19 @@
 import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
-import { UBadge } from '#components'
+import { UBadge, UIcon } from '#components'
 import { sortableHeader } from '~/utils/table'
-import type { ForecastData, ForecastEntry, EntryType } from '~/types'
+import type { ForecastData, ForecastEntry, EntryType, RecurringEntry } from '~/types'
 
 export function initBudgetForecastTable() {
   const { selectedYear, selectedMonth, selectedMonthLabel, monthKey, previousMonth, nextMonth } = useMonthNavigation()
+
+  const selectedEntry = ref<RecurringEntry | null>(null)
+  const entryDetailOpen = ref(false)
+
+  function openEntryDetail(forecastEntry: ForecastEntry) {
+    selectedEntry.value = forecastEntry.entry
+    entryDetailOpen.value = true
+  }
 
   const { data, status, refresh } = useFetch<ForecastData>('/api/budget/forecast', {
     lazy: true,
@@ -37,7 +45,10 @@ export function initBudgetForecastTable() {
         id: 'label',
         header: sortableHeader('Libellé'),
         cell: ({ row }) => {
-          return h('span', { class: 'font-medium text-highlighted' }, row.original.entry.label)
+          return h('button', {
+            class: 'font-medium text-highlighted hover:underline cursor-pointer',
+            onClick: () => openEntryDetail(row.original)
+          }, row.original.entry.label)
         }
       },
       {
@@ -108,7 +119,25 @@ export function initBudgetForecastTable() {
         id: 'label',
         header: sortableHeader('Libellé'),
         cell: ({ row }) => {
-          return h('span', { class: 'font-medium text-highlighted' }, row.original.entry.label)
+          const actual = row.original.actuals[monthKey.value]
+          const planned = row.original.entry.amount
+          const isOverBudget = actual !== null && actual !== undefined && actual > planned
+
+          const children = [
+            h('button', {
+              class: 'font-medium text-highlighted hover:underline cursor-pointer',
+              onClick: () => openEntryDetail(row.original)
+            }, row.original.entry.label)
+          ]
+
+          if (isOverBudget) {
+            children.push(h(UIcon, {
+              name: 'i-lucide-triangle-alert',
+              class: 'text-error text-sm ml-1.5'
+            }))
+          }
+
+          return h('div', { class: 'flex items-center' }, children)
         }
       },
       {
@@ -126,7 +155,20 @@ export function initBudgetForecastTable() {
           if (actual === null || actual === undefined) {
             return h('span', { class: 'text-muted' }, '—')
           }
-          return h('span', { class: 'tabular-nums font-medium' }, formatEuro(actual))
+
+          const planned = row.original.entry.amount
+          const percent = planned > 0 ? (actual / planned) * 100 : 0
+          const colorClass = percent > 100 ? 'bg-error' : percent >= 75 ? 'bg-warning' : 'bg-success'
+
+          return h('div', { class: 'flex flex-col gap-1' }, [
+            h('span', { class: 'tabular-nums font-medium' }, formatEuro(actual)),
+            h('div', { class: 'h-1.5 w-full bg-default rounded-full overflow-hidden' }, [
+              h('div', {
+                class: `h-full rounded-full ${colorClass}`,
+                style: { width: `${Math.min(percent, 100)}%` }
+              })
+            ])
+          ])
         }
       },
       {
@@ -242,6 +284,8 @@ export function initBudgetForecastTable() {
     incomeTotals,
     expenseTotals,
     envelopeTotals,
-    remaining
+    remaining,
+    selectedEntry,
+    entryDetailOpen
   }
 }
