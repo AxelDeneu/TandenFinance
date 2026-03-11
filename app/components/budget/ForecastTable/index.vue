@@ -22,15 +22,6 @@ const {
   entryDetailOpen
 } = initBudgetForecastTable()
 
-const tableUi = {
-  base: 'table-fixed border-separate border-spacing-0',
-  thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
-  tbody: '[&>tr]:last:[&>td]:border-b-0',
-  th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
-  td: 'border-b border-default',
-  separator: 'h-0'
-}
-
 const leadingClasses = {
   success: 'p-2.5 rounded-full bg-success/10 ring ring-inset ring-success/25 flex-col',
   error: 'p-2.5 rounded-full bg-error/10 ring ring-inset ring-error/25 flex-col',
@@ -140,7 +131,7 @@ const summaryStats = computed(() => [
         <UTable
           :data="incomes"
           :columns="incomeColumns"
-          :ui="tableUi"
+          :ui="TABLE_UI"
         />
         <div class="flex justify-between px-3 py-2 bg-elevated/25 rounded-lg">
           <span class="font-semibold">Total Revenus</span>
@@ -161,7 +152,7 @@ const summaryStats = computed(() => [
         <UTable
           :data="expenses"
           :columns="expenseColumns"
-          :ui="tableUi"
+          :ui="TABLE_UI"
         />
         <div class="flex justify-between px-3 py-2 bg-elevated/25 rounded-lg">
           <span class="font-semibold">Total Dépenses</span>
@@ -182,7 +173,7 @@ const summaryStats = computed(() => [
         <UTable
           :data="envelopes"
           :columns="envelopeColumns"
-          :ui="tableUi"
+          :ui="TABLE_UI"
         />
         <div class="flex justify-between px-3 py-2 bg-elevated/25 rounded-lg">
           <span class="font-semibold">Total Enveloppes</span>

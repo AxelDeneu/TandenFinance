@@ -1,8 +1,9 @@
-import { h, type Component } from 'vue'
+import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { getPaginationRowModel } from '@tanstack/table-core'
-import { UBadge, UButton, USwitch, UDropdownMenu } from '#components'
-import { sortableHeader } from '~/utils/table'
+import { UBadge, USwitch } from '#components'
+import { sortableHeader, actionsColumn } from '~/utils/table'
+import { useCrudModals } from '~/composables/useCrudModals'
 import type { RecurringEntry, EntryType } from '~/types'
 
 interface BudgetRecurringTableContext {
@@ -33,21 +34,16 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
     lazy: true
   })
 
-  const editingEntry = ref<RecurringEntry | undefined>()
-  const editModalOpen = ref(false)
-  const deletingEntry = ref<RecurringEntry | undefined>()
-  const deleteModalOpen = ref(false)
-  const addModalOpen = ref(false)
-
-  function openEditModal(entry: RecurringEntry) {
-    editingEntry.value = entry
-    editModalOpen.value = true
-  }
-
-  function openDeleteModal(entry: RecurringEntry) {
-    deletingEntry.value = entry
-    deleteModalOpen.value = true
-  }
+  const {
+    editingEntry, editModalOpen,
+    deletingEntry, deleteModalOpen,
+    addModalOpen,
+    openEditModal, openDeleteModal,
+    onSaved, onDeleted
+  } = useCrudModals<RecurringEntry>({
+    onRefresh: () => refresh(),
+    onNotify: () => ctx.emit('updated')
+  })
 
   async function toggleActive(entry: RecurringEntry) {
     try {
@@ -63,43 +59,6 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
         color: 'error'
       })
     }
-  }
-
-  function onSaved() {
-    refresh()
-    ctx.emit('updated')
-  }
-
-  function onDeleted() {
-    refresh()
-    ctx.emit('updated')
-  }
-
-  function getRowItems(row: { original: RecurringEntry }) {
-    return [
-      {
-        type: 'label' as const,
-        label: 'Actions'
-      },
-      {
-        label: 'Modifier',
-        icon: 'i-lucide-pencil',
-        onSelect() {
-          openEditModal(row.original)
-        }
-      },
-      {
-        type: 'separator' as const
-      },
-      {
-        label: 'Supprimer',
-        icon: 'i-lucide-trash',
-        color: 'error' as const,
-        onSelect() {
-          openDeleteModal(row.original)
-        }
-      }
-    ]
   }
 
   const categoryColors = computed(() => {
@@ -149,31 +108,7 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
         })
       }
     },
-    {
-      id: 'actions',
-      cell: ({ row }) => {
-        return h(
-          'div',
-          { class: 'text-right' },
-          h(
-            UDropdownMenu as Component,
-            {
-              content: {
-                align: 'end'
-              },
-              items: getRowItems(row)
-            },
-            () =>
-              h(UButton, {
-                icon: 'i-lucide-ellipsis-vertical',
-                color: 'neutral',
-                variant: 'ghost',
-                class: 'ml-auto'
-              })
-          )
-        )
-      }
-    }
+    actionsColumn<RecurringEntry>({ onEdit: openEditModal, onDelete: openDeleteModal })
   ]
 
   const categoryFilter = ref('all')

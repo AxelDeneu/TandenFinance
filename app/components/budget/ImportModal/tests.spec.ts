@@ -146,4 +146,43 @@ describe('initImportModal', () => {
     expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
     expect(ctx.emit).not.toHaveBeenCalled()
   })
+
+  it('onFileSelected parses CSV and moves to step 2', async () => {
+    const ctx = createContext()
+    const { onFileSelected, step, rows, filename } = initImportModal(ctx)
+    vi.mocked($fetch).mockResolvedValueOnce({
+      rows: [
+        { rawLabel: 'Test', date: '2026-03-01', amount: 100, type: 'expense', suggestedMatch: null }
+      ],
+      filename: 'test.csv',
+      totalRows: 1
+    })
+    const mockFile = new File(['csv content'], 'test.csv', { type: 'text/csv' })
+    const mockInput = { files: [mockFile] } as unknown as HTMLInputElement
+    await onFileSelected({ target: mockInput } as unknown as Event)
+    expect(step.value).toBe(2)
+    expect(filename.value).toBe('test.csv')
+    expect(rows.value).toHaveLength(1)
+  })
+
+  it('onFileSelected shows error toast on parse failure', async () => {
+    const ctx = createContext()
+    const { onFileSelected, step } = initImportModal(ctx)
+    vi.mocked($fetch).mockRejectedValueOnce(new Error('parse error'))
+    const mockFile = new File(['bad'], 'bad.csv')
+    await onFileSelected({ target: { files: [mockFile] } } as unknown as Event)
+    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
+    expect(step.value).toBe(1)
+  })
+
+  it('reset when modal closes via watch', async () => {
+    const ctx = createContext()
+    const { step, rows } = initImportModal(ctx)
+    step.value = 3
+    rows.value = [{ rawLabel: 'x', date: '', amount: 0, type: 'expense', suggestedMatch: null, included: true, editedLabel: 'x', editedType: 'expense', editedRecurringEntryId: null }] as never[]
+    ctx.open.value = false
+    await new Promise(r => setTimeout(r, 0))
+    expect(step.value).toBe(1)
+    expect(rows.value).toHaveLength(0)
+  })
 })

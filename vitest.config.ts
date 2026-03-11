@@ -33,7 +33,8 @@ export default defineConfig({
     ],
     coverage: {
       enabled: true,
-      provider: 'v8'
+      provider: 'v8',
+      reporter: ['json', 'html']
     },
     reporters: ['html']
   }

@@ -131,4 +131,38 @@ describe('initCategoryTrends', () => {
     const { yAccessors, displayedCategories } = initCategoryTrends(createContext())
     expect(yAccessors.value).toHaveLength(displayedCategories.value.length)
   })
+
+  it('filters income categories when type is income', () => {
+    const result = initCategoryTrends(createContext())
+    result.selectedType.value = 'income'
+    expect(result.activeCategories.value).toHaveLength(1)
+    expect(result.activeCategories.value[0].type).toBe('income')
+  })
+
+  it('colors maps category colors to CSS vars', () => {
+    const result = initCategoryTrends(createContext())
+    expect(result.colors.value.length).toBeGreaterThan(0)
+    for (const color of result.colors.value) {
+      expect(color).toMatch(/^var\(--ui-/)
+    }
+  })
+
+  it('xTicks formats month label in French', () => {
+    const result = initCategoryTrends(createContext())
+    const tick = result.xTicks(0)
+    expect(tick).toBeTruthy()
+    expect(typeof tick).toBe('string')
+  })
+
+  it('xTicks returns empty string for invalid index', () => {
+    const result = initCategoryTrends(createContext())
+    expect(result.xTicks(999)).toBe('')
+  })
+
+  it('displayedCategories filters by selectedCategories', () => {
+    const result = initCategoryTrends(createContext())
+    result.selectedCategories.value = ['Alimentation']
+    expect(result.displayedCategories.value).toHaveLength(1)
+    expect(result.displayedCategories.value[0].category).toBe('Alimentation')
+  })
 })

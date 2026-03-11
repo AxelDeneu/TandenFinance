@@ -16,6 +16,14 @@ export function stubNuxtAutoImports(overrides?: Record<string, unknown>) {
     if (type === 'income') return ({ Salaire: 'success', Freelance: 'info' } as Record<string, string>)[category] ?? 'neutral'
     return ({ Logement: 'warning', Abonnements: 'info' } as Record<string, string>)[category] ?? 'neutral'
   })
+  vi.stubGlobal('TABLE_UI', {
+    base: 'table-fixed border-separate border-spacing-0',
+    thead: '[&>tr]:bg-elevated/50 [&>tr]:after:content-none',
+    tbody: '[&>tr]:last:[&>td]:border-b-0',
+    th: 'py-2 first:rounded-l-lg last:rounded-r-lg border-y border-default first:border-l last:border-r',
+    td: 'border-b border-default',
+    separator: 'h-0'
+  })
   vi.stubGlobal('useRoute', () => ({ query: {} }))
   vi.stubGlobal('useToast', () => ({ add: vi.fn() }))
   vi.stubGlobal('$fetch', vi.fn())

@@ -1,7 +1,7 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
-import type { ForecastData } from '~/types'
+import type { ForecastData, ForecastEntry } from '~/types'
 
 const mockRefresh = vi.fn()
 
@@ -379,5 +379,339 @@ describe('initBudgetForecastTable', () => {
     const { status } = initBudgetForecastTable()
 
     expect(status.value).toBe('idle')
+  })
+
+  // -------------------------------------------------------
+  // Helper: build a mock row and invoke a column cell renderer
+  // -------------------------------------------------------
+  function renderCell(columns: any[], columnId: string, entry: ForecastEntry) {
+    const col = columns.find((c: any) => c.id === columnId)
+    const mockRow = {
+      original: entry,
+      getValue: (k: string) => (entry as any)[k]
+    }
+    return col.cell({ row: mockRow })
+  }
+
+  // -------------------------------------------------------
+  // openEntryDetail sets selectedEntry and opens slideover
+  // -------------------------------------------------------
+  it('openEntryDetail sets selectedEntry and opens slideover', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const entry = result.incomes.value[0]
+    const vnode = renderCell(result.incomeColumns, 'label', entry)
+
+    // Trigger the onClick handler on the button vnode
+    vnode.props.onClick()
+
+    expect(result.selectedEntry.value).toEqual(entry.entry)
+    expect(result.entryDetailOpen.value).toBe(true)
+  })
+
+  // -------------------------------------------------------
+  // Income label cell renders clickable button with entry label
+  // -------------------------------------------------------
+  it('income label cell renders clickable button with entry label', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const entry = result.incomes.value[0]
+    const vnode = renderCell(result.incomeColumns, 'label', entry)
+
+    expect(vnode.type).toBe('button')
+    expect(vnode.children).toBe('Salaire')
+    expect(vnode.props.onClick).toBeTypeOf('function')
+  })
+
+  // -------------------------------------------------------
+  // Income category cell renders UBadge with correct color
+  // -------------------------------------------------------
+  it('income category cell renders UBadge with correct color', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const entry = result.incomes.value[0] // Salaire category
+    const vnode = renderCell(result.incomeColumns, 'category', entry)
+
+    // UBadge is rendered via h(UBadge, { variant, color })
+    expect(vnode.props.variant).toBe('subtle')
+    expect(vnode.props.color).toBe('success') // Salaire -> success
+  })
+
+  // -------------------------------------------------------
+  // Income category cell renders dash when category is null
+  // -------------------------------------------------------
+  it('income category cell renders dash when category is null', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const entryWithNullCategory: ForecastEntry = {
+      entry: { id: 99, type: 'income', label: 'Test', amount: 100, category: null, dayOfMonth: 1, active: true, notes: null, createdAt: '', updatedAt: '' },
+      actuals: { '2026-2': 100 }
+    }
+    const vnode = renderCell(result.incomeColumns, 'category', entryWithNullCategory)
+
+    expect(vnode.type).toBe('span')
+    expect(vnode.children).toBe('-')
+  })
+
+  // -------------------------------------------------------
+  // Planned cell renders formatted euro amount
+  // -------------------------------------------------------
+  it('planned cell renders formatted euro amount', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const entry = result.incomes.value[0] // amount: 3000
+    const vnode = renderCell(result.incomeColumns, 'planned', entry)
+
+    expect(vnode.type).toBe('span')
+    expect(vnode.props.class).toContain('tabular-nums')
+    expect(vnode.children).toContain('3')
+    expect(vnode.children).toContain('000')
+  })
+
+  // -------------------------------------------------------
+  // Income actual cell renders formatted amount when not null
+  // -------------------------------------------------------
+  it('income actual cell renders formatted amount when not null', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const entry = result.incomes.value[0] // actual: 3200
+    const vnode = renderCell(result.incomeColumns, 'actual', entry)
+
+    expect(vnode.type).toBe('span')
+    expect(vnode.props.class).toContain('tabular-nums')
+    expect(vnode.props.class).toContain('font-medium')
+    expect(vnode.children).toContain('3')
+    expect(vnode.children).toContain('200')
+  })
+
+  // -------------------------------------------------------
+  // Income actual cell renders dash when actual is null
+  // -------------------------------------------------------
+  it('income actual cell renders dash when actual is null', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const entry = result.expenses.value[0] // Loyer actual: null
+    const vnode = renderCell(result.expenseColumns, 'actual', entry)
+
+    expect(vnode.type).toBe('span')
+    expect(vnode.props.class).toContain('text-muted')
+    expect(vnode.children).toBe('—')
+  })
+
+  // -------------------------------------------------------
+  // Income variance cell renders positive green for income over plan
+  // -------------------------------------------------------
+  it('income variance cell renders positive green for income over plan', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    // Salaire: actual=3200, planned=3000, diff=+200 (income: diff>=0 -> green/success)
+    const entry = result.incomes.value[0]
+    const vnode = renderCell(result.incomeColumns, 'variance', entry)
+
+    expect(vnode.type).toBe('span')
+    expect(vnode.props.class).toContain('text-success')
+    expect(vnode.children).toContain('+')
+    expect(vnode.children).toContain('200')
+  })
+
+  // -------------------------------------------------------
+  // Expense variance cell renders dash when actual is null
+  // -------------------------------------------------------
+  it('expense variance cell renders dash when actual is null', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const entry = result.expenses.value[0] // Loyer actual: null
+    const vnode = renderCell(result.expenseColumns, 'variance', entry)
+
+    expect(vnode.type).toBe('span')
+    expect(vnode.props.class).toContain('text-muted')
+    expect(vnode.children).toBe('—')
+  })
+
+  // -------------------------------------------------------
+  // Expense variance cell renders green for expense under plan
+  // -------------------------------------------------------
+  it('expense variance cell renders green for expense under plan', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const underBudgetExpense: ForecastEntry = {
+      entry: { id: 10, type: 'expense', label: 'Eau', amount: 100, category: 'Eau', dayOfMonth: 10, active: true, notes: null, createdAt: '', updatedAt: '' },
+      actuals: { '2026-2': 80 }
+    }
+    const vnode = renderCell(result.expenseColumns, 'variance', underBudgetExpense)
+
+    // diff = 80 - 100 = -20 (expense: diff<=0 -> green/success)
+    expect(vnode.props.class).toContain('text-success')
+  })
+
+  // -------------------------------------------------------
+  // Expense variance cell renders red for expense over plan
+  // -------------------------------------------------------
+  it('expense variance cell renders red for expense over plan', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const overBudgetExpense: ForecastEntry = {
+      entry: { id: 11, type: 'expense', label: 'Eau', amount: 100, category: 'Eau', dayOfMonth: 10, active: true, notes: null, createdAt: '', updatedAt: '' },
+      actuals: { '2026-2': 120 }
+    }
+    const vnode = renderCell(result.expenseColumns, 'variance', overBudgetExpense)
+
+    // diff = 120 - 100 = +20 (expense: diff>0 -> red/error)
+    expect(vnode.props.class).toContain('text-error')
+    expect(vnode.children).toContain('+')
+  })
+
+  // -------------------------------------------------------
+  // Envelope label cell renders button with alert icon when over budget
+  // -------------------------------------------------------
+  it('envelope label cell renders button with alert icon when over budget', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const overBudgetEnvelope: ForecastEntry = {
+      entry: { id: 20, type: 'envelope', label: 'Sorties', amount: 200, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' },
+      actuals: { '2026-2': 250 }
+    }
+    const vnode = renderCell(result.envelopeColumns, 'label', overBudgetEnvelope)
+
+    // Wrapper div with flex
+    expect(vnode.type).toBe('div')
+    expect(vnode.props.class).toContain('flex')
+
+    // Should have 2 children: button + alert icon
+    expect(vnode.children).toHaveLength(2)
+
+    const button = vnode.children[0]
+    expect(button.type).toBe('button')
+    expect(button.children).toBe('Sorties')
+
+    const icon = vnode.children[1]
+    expect(icon.props.name).toBe('i-lucide-triangle-alert')
+    expect(icon.props.class).toContain('text-error')
+  })
+
+  // -------------------------------------------------------
+  // Envelope label cell renders button without alert when under budget
+  // -------------------------------------------------------
+  it('envelope label cell renders button without alert when under budget', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    // Courses: actual=480, planned=500 -> under budget
+    const entry = result.envelopes.value[0]
+    const vnode = renderCell(result.envelopeColumns, 'label', entry)
+
+    expect(vnode.type).toBe('div')
+    // Should have only 1 child: the button (no alert icon)
+    expect(vnode.children).toHaveLength(1)
+
+    const button = vnode.children[0]
+    expect(button.type).toBe('button')
+    expect(button.children).toBe('Courses')
+  })
+
+  // -------------------------------------------------------
+  // Envelope actual cell renders progress bar green when < 75%
+  // -------------------------------------------------------
+  it('envelope actual cell renders progress bar green when under 75%', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const lowSpendEnvelope: ForecastEntry = {
+      entry: { id: 30, type: 'envelope', label: 'Loisirs', amount: 400, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' },
+      actuals: { '2026-2': 200 } // 200/400 = 50% -> green
+    }
+    const vnode = renderCell(result.envelopeColumns, 'actual', lowSpendEnvelope)
+
+    // Outer div with flex-col
+    expect(vnode.type).toBe('div')
+    const [amountSpan, progressContainer] = vnode.children
+    expect(amountSpan.type).toBe('span')
+    expect(amountSpan.children).toContain('200')
+
+    const progressBar = progressContainer.children[0]
+    expect(progressBar.props.class).toContain('bg-success')
+    expect(progressBar.props.style.width).toBe('50%')
+  })
+
+  // -------------------------------------------------------
+  // Envelope actual cell renders progress bar warning when 75-100%
+  // -------------------------------------------------------
+  it('envelope actual cell renders progress bar warning when between 75% and 100%', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    // Courses: actual=480, planned=500 -> 96% -> warning
+    const entry = result.envelopes.value[0]
+    const vnode = renderCell(result.envelopeColumns, 'actual', entry)
+
+    const progressBar = vnode.children[1].children[0]
+    expect(progressBar.props.class).toContain('bg-warning')
+    expect(progressBar.props.style.width).toBe('96%')
+  })
+
+  // -------------------------------------------------------
+  // Envelope actual cell renders progress bar error when > 100%
+  // -------------------------------------------------------
+  it('envelope actual cell renders progress bar error when over 100%', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const overBudgetEnvelope: ForecastEntry = {
+      entry: { id: 31, type: 'envelope', label: 'Sorties', amount: 200, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' },
+      actuals: { '2026-2': 250 } // 250/200 = 125% -> error
+    }
+    const vnode = renderCell(result.envelopeColumns, 'actual', overBudgetEnvelope)
+
+    const progressBar = vnode.children[1].children[0]
+    expect(progressBar.props.class).toContain('bg-error')
+    // Width capped at 100%
+    expect(progressBar.props.style.width).toBe('100%')
+  })
+
+  // -------------------------------------------------------
+  // Envelope actual cell renders dash when actual is null
+  // -------------------------------------------------------
+  it('envelope actual cell renders dash when actual is null', () => {
+    const result = initBudgetForecastTable()
+    result.selectedYear.value = 2026
+    result.selectedMonth.value = 2
+
+    const nullActualEnvelope: ForecastEntry = {
+      entry: { id: 32, type: 'envelope', label: 'Cadeaux', amount: 100, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' },
+      actuals: { '2026-2': null }
+    }
+    const vnode = renderCell(result.envelopeColumns, 'actual', nullActualEnvelope)
+
+    expect(vnode.type).toBe('span')
+    expect(vnode.props.class).toContain('text-muted')
+    expect(vnode.children).toBe('—')
   })
 })

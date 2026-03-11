@@ -44,6 +44,7 @@ vi.stubGlobal('$fetch', vi.fn())
 
 describe('initNotificationsSlideover', () => {
   beforeEach(() => {
+    vi.clearAllMocks()
     mockIsNotificationsSlideoverOpen.value = false
     mockNotifications.value = [
       {
@@ -87,5 +88,40 @@ describe('initNotificationsSlideover', () => {
     const result = initNotificationsSlideover()
     result.isNotificationsSlideoverOpen.value = true
     expect(result.isNotificationsSlideoverOpen.value).toBe(true)
+  })
+
+  it('markAsRead calls PATCH and refreshes for unread notification', async () => {
+    const result = initNotificationsSlideover()
+    vi.mocked($fetch).mockResolvedValueOnce(undefined)
+    await result.markAsRead(mockNotifications.value[0])
+    expect($fetch).toHaveBeenCalledWith('/api/notifications/1/read', { method: 'PATCH' })
+    expect(mockRefresh).toHaveBeenCalled()
+  })
+
+  it('markAsRead skips if already read', async () => {
+    const result = initNotificationsSlideover()
+    const readNotification = { ...mockNotifications.value[0], read: true }
+    await result.markAsRead(readNotification)
+    expect($fetch).not.toHaveBeenCalled()
+  })
+
+  it('markAllAsRead calls POST and refreshes', async () => {
+    const result = initNotificationsSlideover()
+    vi.mocked($fetch).mockResolvedValueOnce(undefined)
+    await result.markAllAsRead()
+    expect($fetch).toHaveBeenCalledWith('/api/notifications/read-all', { method: 'POST' })
+    expect(mockRefresh).toHaveBeenCalled()
+  })
+
+  it('unreadCount is 0 when all notifications are read', () => {
+    mockNotifications.value = [{ ...mockNotifications.value[0], read: true }]
+    const result = initNotificationsSlideover()
+    expect(result.unreadCount.value).toBe(0)
+  })
+
+  it('unreadCount handles empty notifications', () => {
+    mockNotifications.value = []
+    const result = initNotificationsSlideover()
+    expect(result.unreadCount.value).toBe(0)
   })
 })

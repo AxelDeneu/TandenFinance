@@ -64,4 +64,54 @@ describe('initHomeSales', () => {
     const result = await initHomeSales()
     expect(result).toBeDefined()
   })
+
+  it('date column cell formats date in French', async () => {
+    const { columns } = await initHomeSales()
+    const entry = mockTransactions[0]
+    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
+    const result = (columns[0] as any).cell({ row: mockRow })
+    expect(result).toMatch(/12/)
+    expect(result).toMatch(/mars/i)
+  })
+
+  it('label column cell renders span with font-medium class', async () => {
+    const { columns } = await initHomeSales()
+    const entry = mockTransactions[0]
+    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
+    const vnode = (columns[1] as any).cell({ row: mockRow })
+    expect(vnode.props.class).toContain('font-medium')
+    expect(vnode.children).toBe('Carrefour')
+  })
+
+  it('type column cell renders "Revenu" badge for income', async () => {
+    const { columns } = await initHomeSales()
+    const incomeEntry = mockTransactions[1]
+    const incomeRow = { original: incomeEntry, getValue: (k: string) => (incomeEntry as any)[k] }
+    const vnode = (columns[2] as any).cell({ row: incomeRow })
+    expect(vnode.props.color).toBe('success')
+  })
+
+  it('type column cell renders "Dépense" badge for expense', async () => {
+    const { columns } = await initHomeSales()
+    const expenseEntry = mockTransactions[0]
+    const expenseRow = { original: expenseEntry, getValue: (k: string) => (expenseEntry as any)[k] }
+    const vnode = (columns[2] as any).cell({ row: expenseRow })
+    expect(vnode.props.color).toBe('error')
+  })
+
+  it('amount column cell renders signed amount with correct color', async () => {
+    const { columns } = await initHomeSales()
+    const expenseEntry = mockTransactions[0]
+    const expenseRow = { original: expenseEntry, getValue: (k: string) => (expenseEntry as any)[k] }
+    const incomeEntry = mockTransactions[1]
+    const incomeRow = { original: incomeEntry, getValue: (k: string) => (incomeEntry as any)[k] }
+
+    const expenseVnode = (columns[3] as any).cell({ row: expenseRow })
+    expect(expenseVnode.props.class).toContain('text-error')
+    expect(expenseVnode.children).toContain('-')
+
+    const incomeVnode = (columns[3] as any).cell({ row: incomeRow })
+    expect(incomeVnode.props.class).toContain('text-success')
+    expect(incomeVnode.children).toContain('+')
+  })
 })

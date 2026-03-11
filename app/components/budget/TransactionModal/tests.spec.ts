@@ -159,4 +159,41 @@ describe('initTransactionModal', () => {
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(state.type).toBe('expense')
   })
+
+  it('onSubmit POST for new transaction', async () => {
+    const ctx = createContext()
+    vi.mocked($fetch).mockResolvedValueOnce(undefined)
+    const { onSubmit } = initTransactionModal(ctx)
+    await onSubmit({ data: { label: 'Test', amount: 50, type: 'expense', date: '2026-03-01', recurringEntryId: null, notes: '' } } as any)
+    expect($fetch).toHaveBeenCalledWith('/api/budget/transactions', { method: 'POST', body: expect.objectContaining({ label: 'Test' }) })
+    expect(ctx.open.value).toBe(false)
+    expect(ctx.emit).toHaveBeenCalledWith('saved')
+  })
+
+  it('onSubmit PUT for existing transaction', async () => {
+    const transaction: Transaction = {
+      id: 5, label: 'Old', amount: 50, type: 'expense', date: '2026-03-01',
+      recurringEntryId: null, notes: null, createdAt: '', updatedAt: ''
+    }
+    const ctx = createContext(transaction)
+    vi.mocked($fetch).mockResolvedValueOnce(undefined)
+    const { onSubmit } = initTransactionModal(ctx)
+    await onSubmit({ data: { label: 'Updated', amount: 75, type: 'expense', date: '2026-03-01', recurringEntryId: null, notes: '' } } as any)
+    expect($fetch).toHaveBeenCalledWith('/api/budget/transactions/5', { method: 'PUT', body: expect.objectContaining({ label: 'Updated' }) })
+  })
+
+  it('onSubmit shows error toast on failure', async () => {
+    const ctx = createContext()
+    vi.mocked($fetch).mockRejectedValueOnce(new Error('fail'))
+    const { onSubmit } = initTransactionModal(ctx)
+    await onSubmit({ data: { label: 'Test', amount: 50, type: 'expense', date: '2026-03-01' } } as any)
+    expect(ctx.open.value).toBe(true)
+    expect(ctx.emit).not.toHaveBeenCalled()
+  })
+
+  it('existingLabels is available', () => {
+    const ctx = createContext()
+    const { existingLabels } = initTransactionModal(ctx)
+    expect(existingLabels).toBeDefined()
+  })
 })

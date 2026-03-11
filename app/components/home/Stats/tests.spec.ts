@@ -131,6 +131,25 @@ describe('initHomeStats', () => {
     expect(leadingClasses).toHaveProperty('error')
     expect(leadingClasses).toHaveProperty('warning')
   })
+
+  it('remaining stat uses success color when remaining >= 0', async () => {
+    const { stats } = await initHomeStats()
+    const remaining = stats.value.find(s => s.title === 'Reste a vivre')
+    expect(remaining?.color).toBe('success')
+  })
+
+  it('remaining stat count is sum of all entry counts', async () => {
+    const { stats } = await initHomeStats()
+    const remaining = stats.value.find(s => s.title === 'Reste a vivre')
+    expect(remaining?.count).toBe(4)
+  })
+
+  it('stat values are formatted euro strings', async () => {
+    const { stats } = await initHomeStats()
+    for (const stat of stats.value) {
+      expect(stat.value).toContain('€')
+    }
+  })
 })
 
 describe('computeEffectiveTotal', () => {

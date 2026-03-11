@@ -219,4 +219,61 @@ describe('initBudgetRuleModal', () => {
     expect(ctx.open.value).toBe(true)
     expect(ctx.emit).not.toHaveBeenCalled()
   })
+
+  it('buildConfig for remaining_low produces correct JSON', async () => {
+    const ctx = createContext()
+    vi.mocked($fetch).mockResolvedValueOnce(undefined)
+    const { onSubmit, state } = initBudgetRuleModal(ctx)
+    state.type = 'remaining_low'
+    state.threshold = 500
+    await onSubmit({ data: { label: 'Test', type: 'remaining_low', threshold: 500 } } as unknown as FormSubmitEvent<BudgetRuleSchema>)
+    expect($fetch).toHaveBeenCalledWith('/api/budget/rules', {
+      method: 'POST',
+      body: expect.objectContaining({ config: JSON.stringify({ threshold: 500 }) })
+    })
+  })
+
+  it('buildConfig for envelope_exceeded produces correct JSON', async () => {
+    const ctx = createContext()
+    vi.mocked($fetch).mockResolvedValueOnce(undefined)
+    const { onSubmit, state } = initBudgetRuleModal(ctx)
+    state.type = 'envelope_exceeded'
+    state.envelopeId = 3
+    await onSubmit({ data: { label: 'Test', type: 'envelope_exceeded', envelopeId: 3 } } as unknown as FormSubmitEvent<BudgetRuleSchema>)
+    expect($fetch).toHaveBeenCalledWith('/api/budget/rules', {
+      method: 'POST',
+      body: expect.objectContaining({ config: JSON.stringify({ envelopeId: 3 }) })
+    })
+  })
+
+  it('buildConfig for category_threshold produces correct JSON', async () => {
+    const ctx = createContext()
+    vi.mocked($fetch).mockResolvedValueOnce(undefined)
+    const { onSubmit, state } = initBudgetRuleModal(ctx)
+    state.type = 'category_threshold'
+    state.category = 'Restaurant'
+    state.threshold = 200
+    await onSubmit({ data: { label: 'Test', type: 'category_threshold', category: 'Restaurant', threshold: 200 } } as unknown as FormSubmitEvent<BudgetRuleSchema>)
+    expect($fetch).toHaveBeenCalledWith('/api/budget/rules', {
+      method: 'POST',
+      body: expect.objectContaining({ config: JSON.stringify({ category: 'Restaurant', threshold: 200 }) })
+    })
+  })
+
+  it('watch handles invalid JSON config gracefully', async () => {
+    const rule = createRule({ config: 'invalid json' })
+    const ctx = createContext({ rule })
+    const { state } = initBudgetRuleModal(ctx)
+    await nextTick()
+    expect(state.threshold).toBeUndefined()
+    expect(state.category).toBe('')
+  })
+
+  it('categoryOptions maps EXPENSE_CATEGORIES', () => {
+    const ctx = createContext()
+    const { categoryOptions } = initBudgetRuleModal(ctx)
+    expect(categoryOptions.value.length).toBeGreaterThan(0)
+    expect(categoryOptions.value[0]).toHaveProperty('label')
+    expect(categoryOptions.value[0]).toHaveProperty('value')
+  })
 })
