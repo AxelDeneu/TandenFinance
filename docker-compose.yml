@@ -1,0 +1,27 @@
+services:
+  nuxt:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        DATABASE_URL: ${DATABASE_URL}
+    environment:
+      NODE_ENV: production
+      HOST: "0.0.0.0"
+      PORT: "3000"
+      DATABASE_URL: ${DATABASE_URL}
+      NITRO_HOST: "0.0.0.0"
+      NITRO_PORT: "3000"
+    networks:
+      - dokploy-network
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.tandenfinance.rule=Host(`finance.cloud.tanden`)"
+      - "traefik.http.routers.tandenfinance.entrypoints=web"
+      - "traefik.http.services.tandenfinance.loadbalancer.server.port=3000"
+      - "traefik.docker.network=dokploy-network"
+    restart: unless-stopped
+
+networks:
+  dokploy-network:
+    external: true
