@@ -33,7 +33,10 @@ export default defineNuxtConfig({
   compatibilityDate: '2024-07-11',
 
   hub: {
-    db: 'postgresql'
+    db: {
+      dialect: 'postgresql',
+      applyMigrationsDuringBuild: false
+    }
   },
 
   typescript: {
