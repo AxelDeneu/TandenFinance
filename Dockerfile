@@ -13,6 +13,7 @@ COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 ARG DATABASE_URL
 ENV DATABASE_URL=${DATABASE_URL}
+ENV NUXT_HUB_MIGRATE=false
 ENV NODE_OPTIONS=--max-old-space-size=4096
 RUN pnpm build
 
