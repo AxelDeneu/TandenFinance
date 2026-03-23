@@ -34,8 +34,7 @@ export default defineNuxtConfig({
 
   hub: {
     db: {
-      dialect: 'postgresql',
-      applyMigrationsDuringBuild: false
+      dialect: 'postgresql'
     }
   },
 
