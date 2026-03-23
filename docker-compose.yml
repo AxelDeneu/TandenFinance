@@ -10,6 +10,7 @@ services:
       HOST: "0.0.0.0"
       PORT: "3000"
       DATABASE_URL: ${DATABASE_URL}
+      NUXT_HUB_DATABASE_URL: ${DATABASE_URL}
       NITRO_HOST: "0.0.0.0"
       NITRO_PORT: "3000"
     networks:
