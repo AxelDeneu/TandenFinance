@@ -5,7 +5,6 @@ interface ThemeMenuContext {
 }
 
 export function initThemeMenu(_ctx: ThemeMenuContext) {
-  const colorMode = useColorMode()
   const appConfig = useAppConfig()
 
   const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
@@ -54,33 +53,6 @@ export function initThemeMenu(_ctx: ThemeMenuContext) {
           appConfig.ui.colors.neutral = color
         }
       }))
-    }]
-  }, {
-    label: 'Apparence',
-    icon: 'i-lucide-sun-moon',
-    children: [{
-      label: 'Clair',
-      icon: 'i-lucide-sun',
-      type: 'checkbox',
-      checked: colorMode.value === 'light',
-      onSelect(e: Event) {
-        e.preventDefault()
-
-        colorMode.preference = 'light'
-      }
-    }, {
-      label: 'Sombre',
-      icon: 'i-lucide-moon',
-      type: 'checkbox',
-      checked: colorMode.value === 'dark',
-      onUpdateChecked(checked: boolean) {
-        if (checked) {
-          colorMode.preference = 'dark'
-        }
-      },
-      onSelect(e: Event) {
-        e.preventDefault()
-      }
     }]
   }]]))
 

@@ -6,7 +6,7 @@ interface BreakdownResponse {
 }
 
 export function initCategoryBreakdown() {
-  const { selectedYear, selectedMonth, selectedMonthLabel, previousMonth, nextMonth } = useMonthNavigation()
+  const { selectedYear, selectedMonth } = useMonthNavigation()
 
   const { data, status } = useFetch<BreakdownResponse>('/api/budget/analytics/category-breakdown', {
     lazy: true,
@@ -28,11 +28,6 @@ export function initCategoryBreakdown() {
   )
 
   return {
-    selectedYear,
-    selectedMonth,
-    selectedMonthLabel,
-    previousMonth,
-    nextMonth,
     selectedType,
     breakdown,
     total,

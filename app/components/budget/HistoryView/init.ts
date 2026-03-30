@@ -16,6 +16,7 @@ interface Context {
 export function initBudgetHistoryView(ctx: Context) {
   const router = useRouter()
   const { width } = useElementSize(ctx.cardRef)
+  const { selectedMonth: globalSelectedMonth } = useSelectedMonth()
 
   const now = new Date()
   const startDate = new Date(now.getFullYear(), now.getMonth() - 11, 1)
@@ -102,7 +103,8 @@ export function initBudgetHistoryView(ctx: Context) {
     </div>`
 
   function navigateToMonth(year: number, month: number) {
-    router.push({ path: '/budget/previsionnel', query: { year: String(year), month: String(month) } })
+    globalSelectedMonth.value = `${year}-${String(month).padStart(2, '0')}`
+    router.push('/budget/previsionnel')
   }
 
   function varianceCell(effective: number, planned: number, goodWhen: 'gte' | 'lte') {

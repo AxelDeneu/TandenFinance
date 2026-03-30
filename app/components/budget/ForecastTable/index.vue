@@ -4,10 +4,7 @@ import { initBudgetForecastTable } from './init'
 const {
   selectedYear,
   selectedMonth,
-  selectedMonthLabel,
   status,
-  previousMonth,
-  nextMonth,
   incomeColumns,
   expenseColumns,
   envelopeColumns,
@@ -67,27 +64,6 @@ const summaryStats = computed(() => [
 
 <template>
   <div class="flex flex-col gap-6">
-    <!-- Month Navigator -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <UButton
-          icon="i-lucide-chevron-left"
-          variant="ghost"
-          color="neutral"
-          @click="previousMonth"
-        />
-        <span class="text-lg font-semibold capitalize min-w-48 text-center">
-          {{ selectedMonthLabel }}
-        </span>
-        <UButton
-          icon="i-lucide-chevron-right"
-          variant="ghost"
-          color="neutral"
-          @click="nextMonth"
-        />
-      </div>
-    </div>
-
     <!-- Summary Cards -->
     <UPageGrid class="lg:grid-cols-4 gap-4 sm:gap-6 lg:gap-px">
       <UPageCard

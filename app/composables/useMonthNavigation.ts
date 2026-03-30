@@ -1,33 +1,14 @@
 export function useMonthNavigation() {
-  const now = new Date()
-  const route = useRoute()
-  const selectedYear = ref(Number(route.query.year) || now.getFullYear())
-  const selectedMonth = ref(Number(route.query.month) || (now.getMonth() + 1))
+  const { selectedMonth: selectedMonthStr, selectedMonthLabel, previousMonth, nextMonth } = useSelectedMonth()
 
-  const selectedMonthLabel = computed(() => {
-    const date = new Date(selectedYear.value, selectedMonth.value - 1, 1)
-    return new Intl.DateTimeFormat('fr-FR', { month: 'long', year: 'numeric' }).format(date)
+  const parsed = computed(() => {
+    const [y, m] = selectedMonthStr.value.split('-')
+    return { year: Number(y), month: Number(m) }
   })
 
-  const monthKey = computed(() => `${selectedYear.value}-${selectedMonth.value}`)
-
-  function previousMonth() {
-    if (selectedMonth.value === 1) {
-      selectedMonth.value = 12
-      selectedYear.value--
-    } else {
-      selectedMonth.value--
-    }
-  }
-
-  function nextMonth() {
-    if (selectedMonth.value === 12) {
-      selectedMonth.value = 1
-      selectedYear.value++
-    } else {
-      selectedMonth.value++
-    }
-  }
+  const selectedYear = computed(() => parsed.value.year)
+  const selectedMonth = computed(() => parsed.value.month)
+  const monthKey = computed(() => `${parsed.value.year}-${parsed.value.month}`)
 
   return { selectedYear, selectedMonth, selectedMonthLabel, monthKey, previousMonth, nextMonth }
 }

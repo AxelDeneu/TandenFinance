@@ -2,9 +2,6 @@
 import { initBudgetAccountingView } from './init'
 
 const {
-  selectedMonthLabel,
-  previousMonth,
-  nextMonth,
   status,
   typeFilter,
   categoryFilter,
@@ -70,25 +67,8 @@ const typeFilterOptions = [
 
 <template>
   <div class="flex flex-col gap-6">
-    <!-- Month Navigator -->
-    <div class="flex items-center justify-between">
-      <div class="flex items-center gap-2">
-        <UButton
-          icon="i-lucide-chevron-left"
-          variant="ghost"
-          color="neutral"
-          @click="previousMonth"
-        />
-        <span class="text-lg font-semibold capitalize min-w-48 text-center">
-          {{ selectedMonthLabel }}
-        </span>
-        <UButton
-          icon="i-lucide-chevron-right"
-          variant="ghost"
-          color="neutral"
-          @click="nextMonth"
-        />
-      </div>
+    <!-- Actions -->
+    <div class="flex items-center justify-end">
       <div class="flex items-center gap-2">
         <UButton
           label="Importer CSV"

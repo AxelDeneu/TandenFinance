@@ -5,7 +5,7 @@ import { sortableHeader } from '~/utils/table'
 import type { Transaction } from '~/types'
 
 export function initBudgetAccountingView() {
-  const { selectedYear, selectedMonth, selectedMonthLabel, previousMonth, nextMonth } = useMonthNavigation()
+  const { selectedYear, selectedMonth } = useMonthNavigation()
 
   const { data: transactions, status, refresh } = useFetch<Transaction[]>('/api/budget/transactions', {
     lazy: true,
@@ -249,9 +249,6 @@ export function initBudgetAccountingView() {
   return {
     selectedYear,
     selectedMonth,
-    selectedMonthLabel,
-    previousMonth,
-    nextMonth,
     transactions,
     status,
     refresh,

@@ -2,9 +2,6 @@
 import { initCategoryBreakdown } from './init'
 
 const {
-  selectedMonthLabel,
-  previousMonth,
-  nextMonth,
   selectedType,
   breakdown,
   total,
@@ -20,24 +17,7 @@ const typeOptions = [
 <template>
   <UCard>
     <template #header>
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <UButton
-            icon="i-lucide-chevron-left"
-            variant="ghost"
-            color="neutral"
-            size="xs"
-            @click="previousMonth"
-          />
-          <span class="text-sm font-semibold capitalize min-w-36 text-center">{{ selectedMonthLabel }}</span>
-          <UButton
-            icon="i-lucide-chevron-right"
-            variant="ghost"
-            color="neutral"
-            size="xs"
-            @click="nextMonth"
-          />
-        </div>
+      <div class="flex items-center justify-end">
         <USelect
           v-model="selectedType"
           :items="typeOptions"
