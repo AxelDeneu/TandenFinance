@@ -27,6 +27,23 @@ vi.mock('#components', () => ({
 
 const { initHomeSales } = await import('./init')
 
+interface TestVNode {
+  type: unknown
+  props: Record<string, unknown>
+  children: TestVNode[] | string
+}
+
+interface CellColumn {
+  cell: (ctx: { row: { original: Transaction, getValue: (k: string) => unknown } }) => TestVNode | string
+  [key: string]: unknown
+}
+
+function renderColumn(columns: unknown[], index: number, entry: Transaction): TestVNode | string {
+  const col = columns[index] as CellColumn
+  const mockRow = { original: entry, getValue: (k: string) => (entry as Record<string, unknown>)[k] }
+  return col.cell({ row: mockRow })
+}
+
 describe('initHomeSales', () => {
   it('should return data and columns', async () => {
     const result = await initHomeSales()
@@ -68,8 +85,7 @@ describe('initHomeSales', () => {
   it('date column cell formats date in French', async () => {
     const { columns } = await initHomeSales()
     const entry = mockTransactions[0]
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
-    const result = (columns[0] as any).cell({ row: mockRow })
+    const result = renderColumn(columns, 0, entry)
     expect(result).toMatch(/12/)
     expect(result).toMatch(/mars/i)
   })
@@ -77,8 +93,7 @@ describe('initHomeSales', () => {
   it('label column cell renders span with font-medium class', async () => {
     const { columns } = await initHomeSales()
     const entry = mockTransactions[0]
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
-    const vnode = (columns[1] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 1, entry) as TestVNode
     expect(vnode.props.class).toContain('font-medium')
     expect(vnode.children).toBe('Carrefour')
   })
@@ -86,31 +101,27 @@ describe('initHomeSales', () => {
   it('type column cell renders "Revenu" badge for income', async () => {
     const { columns } = await initHomeSales()
     const incomeEntry = mockTransactions[1]
-    const incomeRow = { original: incomeEntry, getValue: (k: string) => (incomeEntry as any)[k] }
-    const vnode = (columns[2] as any).cell({ row: incomeRow })
+    const vnode = renderColumn(columns, 2, incomeEntry) as TestVNode
     expect(vnode.props.color).toBe('success')
   })
 
   it('type column cell renders "Dépense" badge for expense', async () => {
     const { columns } = await initHomeSales()
     const expenseEntry = mockTransactions[0]
-    const expenseRow = { original: expenseEntry, getValue: (k: string) => (expenseEntry as any)[k] }
-    const vnode = (columns[2] as any).cell({ row: expenseRow })
+    const vnode = renderColumn(columns, 2, expenseEntry) as TestVNode
     expect(vnode.props.color).toBe('error')
   })
 
   it('amount column cell renders signed amount with correct color', async () => {
     const { columns } = await initHomeSales()
     const expenseEntry = mockTransactions[0]
-    const expenseRow = { original: expenseEntry, getValue: (k: string) => (expenseEntry as any)[k] }
     const incomeEntry = mockTransactions[1]
-    const incomeRow = { original: incomeEntry, getValue: (k: string) => (incomeEntry as any)[k] }
 
-    const expenseVnode = (columns[3] as any).cell({ row: expenseRow })
+    const expenseVnode = renderColumn(columns, 3, expenseEntry) as TestVNode
     expect(expenseVnode.props.class).toContain('text-error')
     expect(expenseVnode.children).toContain('-')
 
-    const incomeVnode = (columns[3] as any).cell({ row: incomeRow })
+    const incomeVnode = renderColumn(columns, 3, incomeEntry) as TestVNode
     expect(incomeVnode.props.class).toContain('text-success')
     expect(incomeVnode.children).toContain('+')
   })

@@ -1,4 +1,4 @@
-import { describe, it, expect, vi } from 'vitest'
+import { describe, it, expect } from 'vitest'
 import { ref } from 'vue'
 import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 import type { CategoryBreakdownItem } from '~/types'

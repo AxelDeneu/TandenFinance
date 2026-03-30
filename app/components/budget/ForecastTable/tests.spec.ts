@@ -384,13 +384,13 @@ describe('initBudgetForecastTable', () => {
   // -------------------------------------------------------
   // Helper: build a mock row and invoke a column cell renderer
   // -------------------------------------------------------
-  function renderCell(columns: any[], columnId: string, entry: ForecastEntry) {
-    const col = columns.find((c: any) => c.id === columnId)
+  function renderCell(columns: { id?: string, cell?: (ctx: { row: { original: ForecastEntry, getValue: (k: string) => unknown } }) => unknown }[], columnId: string, entry: ForecastEntry) {
+    const col = columns.find(c => c.id === columnId)
     const mockRow = {
       original: entry,
-      getValue: (k: string) => (entry as any)[k]
+      getValue: (k: string) => (entry as Record<string, unknown>)[k]
     }
-    return col.cell({ row: mockRow })
+    return (col!.cell as (ctx: { row: typeof mockRow }) => Record<string, unknown>)({ row: mockRow })
   }
 
   // -------------------------------------------------------

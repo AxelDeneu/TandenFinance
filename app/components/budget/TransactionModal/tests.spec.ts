@@ -1,7 +1,9 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
+import type { FormSubmitEvent } from '@nuxt/ui'
 import type { Transaction, RecurringEntry } from '~/types'
+import type { TransactionSchema } from './init'
 
 const mockIncomes: RecurringEntry[] = [
   { id: 1, type: 'income', label: 'Salaire', amount: 3000, category: 'Salaire', dayOfMonth: 25, active: true, notes: null, createdAt: '', updatedAt: '' }
@@ -164,7 +166,7 @@ describe('initTransactionModal', () => {
     const ctx = createContext()
     vi.mocked($fetch).mockResolvedValueOnce(undefined)
     const { onSubmit } = initTransactionModal(ctx)
-    await onSubmit({ data: { label: 'Test', amount: 50, type: 'expense', date: '2026-03-01', recurringEntryId: null, notes: '' } } as any)
+    await onSubmit({ data: { label: 'Test', amount: 50, type: 'expense', date: '2026-03-01', recurringEntryId: null, notes: '' } } as FormSubmitEvent<TransactionSchema>)
     expect($fetch).toHaveBeenCalledWith('/api/budget/transactions', { method: 'POST', body: expect.objectContaining({ label: 'Test' }) })
     expect(ctx.open.value).toBe(false)
     expect(ctx.emit).toHaveBeenCalledWith('saved')
@@ -178,7 +180,7 @@ describe('initTransactionModal', () => {
     const ctx = createContext(transaction)
     vi.mocked($fetch).mockResolvedValueOnce(undefined)
     const { onSubmit } = initTransactionModal(ctx)
-    await onSubmit({ data: { label: 'Updated', amount: 75, type: 'expense', date: '2026-03-01', recurringEntryId: null, notes: '' } } as any)
+    await onSubmit({ data: { label: 'Updated', amount: 75, type: 'expense', date: '2026-03-01', recurringEntryId: null, notes: '' } } as FormSubmitEvent<TransactionSchema>)
     expect($fetch).toHaveBeenCalledWith('/api/budget/transactions/5', { method: 'PUT', body: expect.objectContaining({ label: 'Updated' }) })
   })
 
@@ -186,7 +188,7 @@ describe('initTransactionModal', () => {
     const ctx = createContext()
     vi.mocked($fetch).mockRejectedValueOnce(new Error('fail'))
     const { onSubmit } = initTransactionModal(ctx)
-    await onSubmit({ data: { label: 'Test', amount: 50, type: 'expense', date: '2026-03-01' } } as any)
+    await onSubmit({ data: { label: 'Test', amount: 50, type: 'expense', date: '2026-03-01' } } as FormSubmitEvent<TransactionSchema>)
     expect(ctx.open.value).toBe(true)
     expect(ctx.emit).not.toHaveBeenCalled()
   })

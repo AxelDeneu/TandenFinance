@@ -24,15 +24,15 @@ export default defineNuxtConfig({
 
   css: ['~/assets/css/main.css'],
 
+  colorMode: {
+    preference: 'dark',
+    fallback: 'dark'
+  },
+
   routeRules: {
     '/api/**': {
       cors: true
     }
-  },
-
-  colorMode: {
-    preference: 'dark',
-    fallback: 'dark'
   },
 
   compatibilityDate: '2024-07-11',

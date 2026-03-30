@@ -11,7 +11,6 @@ const {
   onRuleSaved,
   evaluateRules
 } = initBudgetRulesTable()
-
 </script>
 
 <template>

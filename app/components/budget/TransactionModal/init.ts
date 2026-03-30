@@ -74,12 +74,19 @@ export function initTransactionModal(ctx: TransactionModalContext) {
     return options
   })
 
-  // Auto-select type when category changes
-  watch(() => state.recurringEntryId, (entryId) => {
-    if (!entryId) return
-    const option = categoryOptions.value.find(o => o.value === entryId)
-    if (option) {
-      state.type = option.type
+  const filteredCategoryOptions = computed(() => {
+    if (state.type === 'expense') {
+      return categoryOptions.value.filter(o => o.group === 'Dépenses' || o.group === 'Enveloppes')
+    }
+    return categoryOptions.value.filter(o => o.group === 'Revenus' || o.group === 'Enveloppes')
+  })
+
+  // Reset category when type changes and current selection is no longer valid
+  watch(() => state.type, () => {
+    if (!state.recurringEntryId) return
+    const stillValid = filteredCategoryOptions.value.some(o => o.value === state.recurringEntryId)
+    if (!stillValid) {
+      state.recurringEntryId = null
     }
   })
 
@@ -146,7 +153,7 @@ export function initTransactionModal(ctx: TransactionModalContext) {
     state,
     isEdit,
     modalTitle,
-    categoryOptions,
+    filteredCategoryOptions,
     existingLabels,
     onSubmit
   }

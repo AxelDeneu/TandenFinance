@@ -126,7 +126,7 @@ describe('actionsColumn', () => {
   it('cell renders a vnode', () => {
     const col = actionsColumn({ onEdit: vi.fn(), onDelete: vi.fn() })
     const row = { original: { id: 1 } }
-    const vnode = (col as any).cell({ row })
+    const vnode = (col as { cell: (ctx: { row: typeof row }) => { props: Record<string, unknown> } }).cell({ row })
     expect(vnode).toBeDefined()
     expect(vnode.props.class).toBe('text-right')
   })

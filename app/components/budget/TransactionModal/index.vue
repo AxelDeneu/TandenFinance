@@ -12,7 +12,7 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { default: false })
 
-const { schema, state, isEdit, modalTitle, categoryOptions, existingLabels, onSubmit } = initTransactionModal({ props, emit, open })
+const { schema, state, isEdit, modalTitle, filteredCategoryOptions, existingLabels, onSubmit } = initTransactionModal({ props, emit, open })
 
 const typeOptions = [
   { label: 'Dépense', value: 'expense' },
@@ -23,7 +23,7 @@ const NONE_LABEL = 'Non catégorisé'
 
 const categoryLabels = computed(() => {
   const labels: string[] = [NONE_LABEL]
-  for (const opt of categoryOptions.value) {
+  for (const opt of filteredCategoryOptions.value) {
     labels.push(`${opt.group} — ${opt.label}`)
   }
   return labels
@@ -32,7 +32,7 @@ const categoryLabels = computed(() => {
 const selectedCategoryLabel = computed({
   get: () => {
     if (!state.recurringEntryId) return NONE_LABEL
-    const opt = categoryOptions.value.find(o => o.value === state.recurringEntryId)
+    const opt = filteredCategoryOptions.value.find(o => o.value === state.recurringEntryId)
     return opt ? `${opt.group} — ${opt.label}` : NONE_LABEL
   },
   set: (label: string) => {
@@ -40,7 +40,7 @@ const selectedCategoryLabel = computed({
       state.recurringEntryId = null
       return
     }
-    const opt = categoryOptions.value.find(o => `${o.group} — ${o.label}` === label)
+    const opt = filteredCategoryOptions.value.find(o => `${o.group} — ${o.label}` === label)
     if (opt) {
       state.recurringEntryId = opt.value
     }

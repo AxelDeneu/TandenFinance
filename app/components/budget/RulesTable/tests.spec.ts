@@ -23,6 +23,23 @@ stubNuxtAutoImports({
 
 const { initBudgetRulesTable } = await import('./init')
 
+interface TestVNode {
+  type: unknown
+  props: Record<string, unknown>
+  children: TestVNode[] | string
+}
+
+interface CellColumn {
+  cell: (ctx: { row: { original: BudgetRule, getValue: (k: string) => unknown } }) => TestVNode
+  [key: string]: unknown
+}
+
+function renderColumn(columns: unknown[], index: number, rule: BudgetRule): TestVNode {
+  const col = columns[index] as CellColumn
+  const mockRow = { original: rule, getValue: (k: string) => (rule as Record<string, unknown>)[k] }
+  return col.cell({ row: mockRow })
+}
+
 describe('initBudgetRulesTable', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -119,12 +136,11 @@ describe('initBudgetRulesTable', () => {
 
   it('openEditModal sets editingRule and opens modal', () => {
     const rule = createRule()
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns, editingRule, modalOpen } = initBudgetRulesTable()
 
-    const actionsVnode = (columns[3] as any).cell({ row: mockRow })
-    const editButton = actionsVnode.children[0]
-    editButton.props.onClick()
+    const actionsVnode = renderColumn(columns, 3, rule)
+    const editButton = (actionsVnode.children as TestVNode[])[0]
+    ;(editButton.props.onClick as () => void)()
 
     expect(editingRule.value).toEqual(rule)
     expect(modalOpen.value).toBe(true)
@@ -132,13 +148,12 @@ describe('initBudgetRulesTable', () => {
 
   it('deleteRule calls DELETE and shows success toast', async () => {
     const rule = createRule()
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns } = initBudgetRulesTable()
     vi.mocked($fetch).mockResolvedValueOnce(undefined)
 
-    const actionsVnode = (columns[3] as any).cell({ row: mockRow })
-    const deleteButton = actionsVnode.children[1]
-    await deleteButton.props.onClick()
+    const actionsVnode = renderColumn(columns, 3, rule)
+    const deleteButton = (actionsVnode.children as TestVNode[])[1]
+    await (deleteButton.props.onClick as () => Promise<void>)()
 
     expect($fetch).toHaveBeenCalledWith('/api/budget/rules/1', { method: 'DELETE' })
     expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'success' }))
@@ -146,25 +161,23 @@ describe('initBudgetRulesTable', () => {
 
   it('deleteRule shows error toast on failure', async () => {
     const rule = createRule()
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns } = initBudgetRulesTable()
     vi.mocked($fetch).mockRejectedValueOnce(new Error('fail'))
 
-    const actionsVnode = (columns[3] as any).cell({ row: mockRow })
-    const deleteButton = actionsVnode.children[1]
-    await deleteButton.props.onClick()
+    const actionsVnode = renderColumn(columns, 3, rule)
+    const deleteButton = (actionsVnode.children as TestVNode[])[1]
+    await (deleteButton.props.onClick as () => Promise<void>)()
 
     expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
   })
 
   it('toggleRule calls PATCH and refreshes', async () => {
     const rule = createRule()
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns } = initBudgetRulesTable()
     vi.mocked($fetch).mockResolvedValueOnce(undefined)
 
-    const activeVnode = (columns[2] as any).cell({ row: mockRow })
-    await activeVnode.props['onUpdate:modelValue']()
+    const activeVnode = renderColumn(columns, 2, rule)
+    await (activeVnode.props['onUpdate:modelValue'] as () => Promise<void>)()
 
     expect($fetch).toHaveBeenCalledWith('/api/budget/rules/1/toggle', { method: 'PATCH' })
     expect(mockRefresh).toHaveBeenCalled()
@@ -172,22 +185,20 @@ describe('initBudgetRulesTable', () => {
 
   it('toggleRule shows error toast on failure', async () => {
     const rule = createRule()
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns } = initBudgetRulesTable()
     vi.mocked($fetch).mockRejectedValueOnce(new Error('fail'))
 
-    const activeVnode = (columns[2] as any).cell({ row: mockRow })
-    await activeVnode.props['onUpdate:modelValue']()
+    const activeVnode = renderColumn(columns, 2, rule)
+    await (activeVnode.props['onUpdate:modelValue'] as () => Promise<void>)()
 
     expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
   })
 
   it('column label cell renders span with rule label', () => {
     const rule = createRule({ label: 'Test Label' })
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns } = initBudgetRulesTable()
 
-    const vnode = (columns[0] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 0, rule)
 
     expect(vnode.type).toBe('span')
     expect(vnode.children).toBe('Test Label')
@@ -195,10 +206,9 @@ describe('initBudgetRulesTable', () => {
 
   it('column type cell renders UBadge with warning color for remaining_low', () => {
     const rule = createRule({ type: 'remaining_low' })
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns } = initBudgetRulesTable()
 
-    const vnode = (columns[1] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 1, rule)
 
     expect(vnode.props.color).toBe('warning')
     expect(vnode.props.variant).toBe('subtle')
@@ -206,30 +216,27 @@ describe('initBudgetRulesTable', () => {
 
   it('column type cell renders UBadge with error color for envelope_exceeded', () => {
     const rule = createRule({ type: 'envelope_exceeded' })
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns } = initBudgetRulesTable()
 
-    const vnode = (columns[1] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 1, rule)
 
     expect(vnode.props.color).toBe('error')
   })
 
   it('column type cell renders UBadge with info color for category_threshold', () => {
     const rule = createRule({ type: 'category_threshold' })
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns } = initBudgetRulesTable()
 
-    const vnode = (columns[1] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 1, rule)
 
     expect(vnode.props.color).toBe('info')
   })
 
   it('column active cell renders USwitch', () => {
     const rule = createRule({ active: true })
-    const mockRow = { original: rule, getValue: (k: string) => (rule as any)[k] }
     const { columns } = initBudgetRulesTable()
 
-    const vnode = (columns[2] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 2, rule)
 
     expect(vnode.type).toBe('USwitch')
     expect(vnode.props.modelValue).toBe(true)

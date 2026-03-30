@@ -28,6 +28,23 @@ function createContext() {
   return { emit }
 }
 
+interface TestVNode {
+  type: unknown
+  props: Record<string, unknown>
+  children: TestVNode[] | string
+}
+
+interface CellColumn {
+  cell: (ctx: { row: { original: RecurringEntry, getValue: (k: string) => unknown } }) => TestVNode
+  [key: string]: unknown
+}
+
+function renderColumn(columns: unknown[], index: number, entry: RecurringEntry): TestVNode {
+  const col = columns[index] as CellColumn
+  const mockRow = { original: entry, getValue: (k: string) => (entry as Record<string, unknown>)[k] }
+  return col.cell({ row: mockRow })
+}
+
 describe('initBudgetEnvelopeTable', () => {
   beforeEach(() => {
     vi.clearAllMocks()
@@ -122,9 +139,8 @@ describe('initBudgetEnvelopeTable', () => {
     const ctx = createContext()
     const { columns } = initBudgetEnvelopeTable(ctx)
     const entry = createEntry()
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
 
-    const vnode = (columns[0] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 0, entry)
 
     expect(vnode.type).toBe('span')
     expect(vnode.children).toBe('Courses')
@@ -134,9 +150,8 @@ describe('initBudgetEnvelopeTable', () => {
     const ctx = createContext()
     const { columns } = initBudgetEnvelopeTable(ctx)
     const entry = createEntry({ amount: 1234 })
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
 
-    const vnode = (columns[1] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 1, entry)
 
     expect(vnode.type).toBe('span')
     expect(vnode.children).toContain('1')
@@ -146,9 +161,8 @@ describe('initBudgetEnvelopeTable', () => {
     const ctx = createContext()
     const { columns } = initBudgetEnvelopeTable(ctx)
     const entry = createEntry()
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
 
-    const vnode = (columns[2] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 2, entry)
 
     expect(vnode.type).toBe('USwitch')
   })
@@ -157,28 +171,26 @@ describe('initBudgetEnvelopeTable', () => {
     const ctx = createContext()
     const { columns } = initBudgetEnvelopeTable(ctx)
     const entry = createEntry()
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
 
-    const vnode = (columns[3] as any).cell({ row: mockRow })
+    const vnode = renderColumn(columns, 3, entry)
 
     expect(vnode.type).toBe('div')
-    const dropdownVnode = vnode.children[0]
+    const dropdownVnode = (vnode.children as TestVNode[])[0]
     expect(dropdownVnode.type).toBe('UDropdownMenu')
     expect(dropdownVnode.props.items).toBeDefined()
-    expect(dropdownVnode.props.items.length).toBeGreaterThan(0)
+    expect((dropdownVnode.props.items as unknown[]).length).toBeGreaterThan(0)
   })
 
   it('getRowItems Modifier onSelect opens edit modal', () => {
     const ctx = createContext()
     const { columns, editingEntry, editModalOpen } = initBudgetEnvelopeTable(ctx)
     const entry = createEntry()
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
 
-    const actionsVnode = (columns[3] as any).cell({ row: mockRow })
-    const items = actionsVnode.children[0].props.items
-    const modifierItem = items.find((i: any) => i.label === 'Modifier')
+    const actionsVnode = renderColumn(columns, 3, entry)
+    const items = (actionsVnode.children as TestVNode[])[0].props.items as { label?: string, onSelect: () => void }[]
+    const modifierItem = items.find(i => i.label === 'Modifier')
 
-    modifierItem.onSelect()
+    modifierItem!.onSelect()
 
     expect(editingEntry.value).toEqual(entry)
     expect(editModalOpen.value).toBe(true)
@@ -188,13 +200,12 @@ describe('initBudgetEnvelopeTable', () => {
     const ctx = createContext()
     const { columns, deletingEntry, deleteModalOpen } = initBudgetEnvelopeTable(ctx)
     const entry = createEntry()
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
 
-    const actionsVnode = (columns[3] as any).cell({ row: mockRow })
-    const items = actionsVnode.children[0].props.items
-    const supprimerItem = items.find((i: any) => i.label === 'Supprimer')
+    const actionsVnode = renderColumn(columns, 3, entry)
+    const items = (actionsVnode.children as TestVNode[])[0].props.items as { label?: string, onSelect: () => void }[]
+    const supprimerItem = items.find(i => i.label === 'Supprimer')
 
-    supprimerItem.onSelect()
+    supprimerItem!.onSelect()
 
     expect(deletingEntry.value).toEqual(entry)
     expect(deleteModalOpen.value).toBe(true)
@@ -204,12 +215,11 @@ describe('initBudgetEnvelopeTable', () => {
     const ctx = createContext()
     const { columns } = initBudgetEnvelopeTable(ctx)
     const entry = createEntry({ id: 42 })
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
 
-    const switchVnode = (columns[2] as any).cell({ row: mockRow })
+    const switchVnode = renderColumn(columns, 2, entry)
 
     vi.mocked($fetch).mockResolvedValueOnce(undefined)
-    await switchVnode.props['onUpdate:modelValue']()
+    await (switchVnode.props['onUpdate:modelValue'] as () => Promise<void>)()
 
     expect($fetch).toHaveBeenCalledWith('/api/budget/envelopes/42/toggle', { method: 'PATCH' })
     expect(mockRefresh).toHaveBeenCalled()
@@ -220,12 +230,11 @@ describe('initBudgetEnvelopeTable', () => {
     const ctx = createContext()
     const { columns } = initBudgetEnvelopeTable(ctx)
     const entry = createEntry()
-    const mockRow = { original: entry, getValue: (k: string) => (entry as any)[k] }
 
-    const switchVnode = (columns[2] as any).cell({ row: mockRow })
+    const switchVnode = renderColumn(columns, 2, entry)
 
     vi.mocked($fetch).mockRejectedValueOnce(new Error('fail'))
-    await switchVnode.props['onUpdate:modelValue']()
+    await (switchVnode.props['onUpdate:modelValue'] as () => Promise<void>)()
 
     expect(mockToastAdd).toHaveBeenCalledWith(
       expect.objectContaining({
