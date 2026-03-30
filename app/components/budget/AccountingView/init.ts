@@ -26,7 +26,7 @@ export function initBudgetAccountingView() {
 
   const availableCategories = computed(() => {
     const cats = new Set<string>()
-    for (const t of transactions.value) {
+    for (const t of (transactions.value ?? [])) {
       const cat = t.recurringEntry?.category
       if (cat) cats.add(cat)
     }
@@ -34,7 +34,7 @@ export function initBudgetAccountingView() {
   })
 
   const filteredTransactions = computed(() => {
-    let result = transactions.value
+    let result = transactions.value ?? []
 
     if (typeFilter.value !== 'all') {
       result = result.filter(t => t.type === typeFilter.value)
@@ -109,13 +109,13 @@ export function initBudgetAccountingView() {
 
   // Totals
   const totalIncome = computed(() => {
-    return transactions.value
+    return (transactions.value ?? [])
       .filter(t => t.type === 'income')
       .reduce((sum, t) => sum + t.amount, 0)
   })
 
   const totalExpense = computed(() => {
-    return transactions.value
+    return (transactions.value ?? [])
       .filter(t => t.type === 'expense')
       .reduce((sum, t) => sum + t.amount, 0)
   })

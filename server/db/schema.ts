@@ -45,6 +45,12 @@ export const budgetRules = pgTable('budget_rules', {
   updatedAt: timestamp('updated_at').notNull()
 })
 
+export const appSettings = pgTable('app_settings', {
+  key: text().primaryKey(),
+  value: text().notNull(),
+  updatedAt: timestamp('updated_at').notNull()
+})
+
 export const notifications = pgTable('notifications', {
   id: serial().primaryKey(),
   ruleId: integer('rule_id').references(() => budgetRules.id, { onDelete: 'cascade' }),

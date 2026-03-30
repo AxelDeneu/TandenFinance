@@ -16,7 +16,7 @@ export function initRecurringEntryDetail(props: {
 
   const filteredTransactions = computed(() => {
     if (!props.entry.value) return []
-    return transactions.value
+    return (transactions.value ?? [])
       .filter(t => t.recurringEntryId === props.entry.value!.id)
       .sort((a, b) => b.date.localeCompare(a.date))
   })

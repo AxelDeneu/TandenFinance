@@ -15,6 +15,13 @@
       "when": 1772751483056,
       "tag": "0001_many_may_parker",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1774885118391,
+      "tag": "0002_luxuriant_mongu",
+      "breakpoints": true
     }
   ]
 }
