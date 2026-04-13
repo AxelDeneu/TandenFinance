@@ -21,8 +21,12 @@ export function initRecurringEntryDetail(props: {
       .sort((a, b) => b.date.localeCompare(a.date))
   })
 
+  const isEnvelope = computed(() => props.entry.value?.type === 'envelope')
+
   const totalSpent = computed(() =>
-    filteredTransactions.value.reduce((sum, t) => sum + t.amount, 0)
+    filteredTransactions.value.reduce((sum, t) => {
+      return sum + (isEnvelope.value && t.type === 'income' ? -t.amount : t.amount)
+    }, 0)
   )
 
   const budgetRemaining = computed(() => {

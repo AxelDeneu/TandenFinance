@@ -697,6 +697,44 @@ describe('initBudgetForecastTable', () => {
   })
 
   // -------------------------------------------------------
+  // Envelope totals handle net actual after income reimbursements
+  // -------------------------------------------------------
+  it('envelopeTotals handles net actual reduced by income reimbursements', () => {
+    const reimbursedData: ForecastData = {
+      months: [{ year: 2026, month: 3, label: 'mars 2026' }],
+      incomes: [],
+      expenses: [],
+      envelopes: [
+        {
+          entry: { id: 10, type: 'envelope', label: 'Santé', amount: 30, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' },
+          actuals: { '2026-3': 0 } // 30€ expense - 20€ sécu - 10€ mutuelle = 0€ net
+        }
+      ]
+    }
+
+    vi.stubGlobal('useFetch', () => ({
+      data: ref(reimbursedData),
+      status: ref('idle'),
+      refresh: mockRefresh
+    }))
+
+    const { selectedYear, selectedMonth, envelopeTotals } = initBudgetForecastTable()
+    selectedYear.value = 2026
+    selectedMonth.value = 3
+
+    // actual=0, planned=30 => effective = max(0, 30) = 30 (budget reserved)
+    expect(envelopeTotals.value.actual).toBe(0)
+    expect(envelopeTotals.value.planned).toBe(30)
+    expect(envelopeTotals.value.effective).toBe(30)
+
+    vi.stubGlobal('useFetch', () => ({
+      data: ref(mockData),
+      status: ref('idle'),
+      refresh: mockRefresh
+    }))
+  })
+
+  // -------------------------------------------------------
   // Envelope actual cell renders dash when actual is null
   // -------------------------------------------------------
   it('envelope actual cell renders dash when actual is null', () => {

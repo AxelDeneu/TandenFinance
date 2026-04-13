@@ -45,6 +45,7 @@ export default defineApiHandler(async (event) => {
   // Aggregate by recurringEntryId + month
   const actualsByEntry = new Map<number, Map<string, number>>()
   const uncategorizedByMonth = new Map<string, { income: number, expense: number }>()
+  const envelopeIds = new Set(activeEntries.filter(e => e.type === 'envelope').map(e => e.id))
 
   for (const tx of allTransactions) {
     const [txYear, txMonthStr] = tx.date.slice(0, 7).split('-')
@@ -55,7 +56,10 @@ export default defineApiHandler(async (event) => {
         actualsByEntry.set(tx.recurringEntryId, new Map())
       }
       const entryMap = actualsByEntry.get(tx.recurringEntryId)!
-      entryMap.set(key, (entryMap.get(key) ?? 0) + tx.amount)
+      const amount = (envelopeIds.has(tx.recurringEntryId) && tx.type === 'income')
+        ? -tx.amount
+        : tx.amount
+      entryMap.set(key, (entryMap.get(key) ?? 0) + amount)
     } else {
       if (!uncategorizedByMonth.has(key)) {
         uncategorizedByMonth.set(key, { income: 0, expense: 0 })
