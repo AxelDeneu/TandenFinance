@@ -35,6 +35,10 @@ export default defineNuxtConfig({
     }
   },
 
+  runtimeConfig: {
+    mcpToken: ''
+  },
+
   compatibilityDate: '2024-07-11',
 
   hub: {
