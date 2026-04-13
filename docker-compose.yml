@@ -5,12 +5,14 @@ services:
       dockerfile: Dockerfile
       args:
         DATABASE_URL: ${DATABASE_URL}
+        NUXT_MCP_TOKEN: ${NUXT_MCP_TOKEN}
     environment:
       NODE_ENV: production
       HOST: "0.0.0.0"
       PORT: "3000"
       DATABASE_URL: ${DATABASE_URL}
       NUXT_HUB_DATABASE_URL: ${DATABASE_URL}
+      NUXT_MCP_TOKEN: ${NUXT_MCP_TOKEN}
       NITRO_HOST: "0.0.0.0"
       NITRO_PORT: "3000"
     networks:
