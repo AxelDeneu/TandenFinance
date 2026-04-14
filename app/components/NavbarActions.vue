@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const { isNotificationsSlideoverOpen } = useDashboard()
-const { selectedMonthLabel, previousMonth, nextMonth } = useSelectedMonth()
+const { previousMonth, nextMonth } = useSelectedMonth()
 </script>
 
 <template>
@@ -13,9 +13,7 @@ const { selectedMonthLabel, previousMonth, nextMonth } = useSelectedMonth()
       size="sm"
       @click="previousMonth"
     />
-    <span class="text-sm font-medium text-highlighted capitalize min-w-32 text-center">
-      {{ selectedMonthLabel }}
-    </span>
+    <BudgetMonthPicker />
     <UButton
       color="neutral"
       variant="ghost"
