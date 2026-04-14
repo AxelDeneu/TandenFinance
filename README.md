@@ -1,64 +1,164 @@
-# Nuxt Dashboard Template
+# 💰 TandenFinance
 
-[![Nuxt UI](https://img.shields.io/badge/Made%20with-Nuxt%20UI-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+[![Nuxt](https://img.shields.io/badge/Nuxt-3.x-00DC82?logo=nuxt&labelColor=020420)](https://nuxt.com)
+[![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&labelColor=white)](https://www.typescriptlang.org)
+[![Nuxt UI](https://img.shields.io/badge/Nuxt%20UI-v4-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-Get started with the Nuxt dashboard template with multiple pages, collapsible sidebar, keyboard shortcuts, light & dark mode, command palette and more, powered by [Nuxt UI](https://ui.nuxt.com).
+> A personal family budget management system built for Axel & Dorine — track transactions, manage accounts, and visualize your financial health.
 
-- [Live demo](https://dashboard-template.nuxt.dev/)
-- [Documentation](https://ui.nuxt.com/docs/getting-started/installation/nuxt)
+---
 
-<a href="https://dashboard-template.nuxt.dev/" target="_blank">
-  <picture>
-    <source media="(prefers-color-scheme: dark)" srcset="https://ui.nuxt.com/assets/templates/nuxt/dashboard-dark.png">
-    <source media="(prefers-color-scheme: light)" srcset="https://ui.nuxt.com/assets/templates/nuxt/dashboard-light.png">
-    <img alt="Nuxt Dashboard Template" src="https://ui.nuxt.com/assets/templates/nuxt/dashboard-light.png">
-  </picture>
-</a>
+## ✨ Features
 
-> The dashboard template for Vue is on https://github.com/nuxt-ui-templates/dashboard-vue.
+- 📊 **Dashboard Overview** — At-a-glance summary of your financial situation
+- 💳 **Transaction Tracking** — Log and categorize income and expenses
+- 🗂️ **Budget Categories** — Organize spending by custom categories
+- 🏦 **Account Management** — Manage multiple bank accounts and balances
+- 📈 **Financial Reports & Visualizations** — Charts and graphs powered by Unovis
+- 🔁 **Recurring Expenses** — Track subscriptions and regular bills
+- 🎯 **Budget Goals & Limits** — Set targets and get notified when you're close
+- ⌨️ **Keyboard Shortcuts** — Fast navigation (`g-h`, `g-i`, `g-c`, `g-s`, `n`)
+- 🌗 **Light & Dark Mode** — Full theme support
+- 📱 **Responsive Design** — Works on desktop and mobile
 
-## Quick Start
+> **Note:** TandenFinance is a work in progress. Some features are planned and not yet implemented.
 
-```bash [Terminal]
-npm create nuxt@latest -- -t github:nuxt-ui-templates/dashboard
-```
+---
 
-## Deploy your own
+## 🛠️ Tech Stack
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-name=dashboard&repository-url=https%3A%2F%2Fgithub.com%2Fnuxt-ui-templates%2Fdashboard&demo-image=https%3A%2F%2Fui.nuxt.com%2Fassets%2Ftemplates%2Fnuxt%2Fdashboard-dark.png&demo-url=https%3A%2F%2Fdashboard-template.nuxt.dev%2F&demo-title=Nuxt%20Dashboard%20Template&demo-description=A%20dashboard%20template%20with%20multi-column%20layout%20for%20building%20sophisticated%20admin%20interfaces.)
+| Category | Technology |
+|---|---|
+| **Framework** | [Nuxt 3](https://nuxt.com) (v4.3.1) + TypeScript |
+| **UI Library** | [Nuxt UI v4](https://ui.nuxt.com) + Tailwind CSS v4 |
+| **Package Manager** | pnpm (v10.29.2) |
+| **Testing** | [Vitest](https://vitest.dev) (unit + Nuxt integration) |
+| **State Management** | [VueUse](https://vueuse.org) composables |
+| **Data Validation** | [Zod](https://zod.dev) |
+| **Date Handling** | [date-fns](https://date-fns.org) |
+| **Charts** | [Unovis](https://unovis.dev) (`@unovis/vue`, `@unovis/ts`) |
+| **Tables** | [TanStack Table](https://tanstack.com/table) Core |
+| **Deployment** | [NuxtHub](https://hub.nuxt.com) |
 
-## Setup
+---
 
-Make sure to install the dependencies:
+## 🚀 Getting Started
+
+### Prerequisites
+
+- **Node.js** ≥ 18
+- **pnpm** ≥ 10
+
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/AxelDeneu/TandenFinance.git
+cd TandenFinance
+
+# Install dependencies
 pnpm install
 ```
 
-## Development Server
-
-Start the development server on `http://localhost:3000`:
+### Start the Development Server
 
 ```bash
 pnpm dev
 ```
 
-## Production
+The app will be available at [http://localhost:3000](http://localhost:3000).
 
-Build the application for production:
+---
+
+## 🧑‍💻 Development
+
+### Available Commands
 
 ```bash
+# Start development server
+pnpm dev
+
+# Build for production
 pnpm build
+
+# Preview production build
+pnpm preview
+
+# Run all tests
+pnpm test
+
+# Run tests in watch mode
+pnpm test:watch
+
+# Run only unit tests
+pnpm test:unit
+
+# Run only Nuxt integration tests
+pnpm test:nuxt
+
+# Run tests with coverage
+pnpm test:coverage
+
+# Lint codebase
+pnpm lint
+
+# Type checking
+pnpm typecheck
+
+# Generate database migrations (after modifying server/db/schema.ts)
+npx nuxt db generate
 ```
 
-Locally preview production build:
+> Database migrations are applied automatically on dev server startup.
+
+---
+
+## 🐳 Docker
+
+A `Dockerfile` and `docker-compose.yml` are included for containerized deployment.
 
 ```bash
-pnpm preview
+# Build and start the application
+docker compose up --build
+
+# Run in detached mode
+docker compose up -d
 ```
 
-Check out the [deployment documentation](https://nuxt.com/docs/getting-started/deployment) for more information.
+> The `NUXT_MCP_TOKEN` environment variable is pre-configured in `docker-compose.yml` for MCP integration.
 
-## Renovate integration
+---
 
-Install [Renovate GitHub app](https://github.com/apps/renovate/installations/select_target) on your repository and you are good to go.
+## 📁 Project Structure
+
+```
+TandenFinance/
+├── app/
+│   ├── pages/          # File-based routing (index, customers, inbox, settings/*)
+│   ├── components/     # Vue components organized by feature
+│   ├── composables/    # Shared Vue composables (useDashboard.ts, ...)
+│   ├── layouts/        # Layout components (default.vue)
+│   ├── types/          # TypeScript type definitions
+│   ├── utils/          # Utility functions
+│   ├── assets/css/     # Global styles
+│   └── app.config.ts   # Nuxt UI configuration
+├── server/
+│   └── api/            # Server-side API route handlers
+├── test/
+│   ├── unit/           # Pure unit tests (Node environment)
+│   └── nuxt/           # Nuxt integration tests (happy-dom)
+├── Dockerfile
+├── docker-compose.yml
+└── nuxt.config.ts
+```
+
+---
+
+## 📄 License
+
+This project is licensed under the [MIT License](LICENSE).
+
+---
+
+*Built with ❤️ for Axel & Dorine*
