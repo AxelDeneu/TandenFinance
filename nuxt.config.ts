@@ -29,14 +29,14 @@ export default defineNuxtConfig({
     fallback: 'dark'
   },
 
+  runtimeConfig: {
+    mcpToken: ''
+  },
+
   routeRules: {
     '/api/**': {
       cors: true
     }
-  },
-
-  runtimeConfig: {
-    mcpToken: ''
   },
 
   compatibilityDate: '2024-07-11',
