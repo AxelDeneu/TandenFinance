@@ -11,13 +11,6 @@ export default defineNuxtConfig({
     '@nuxthub/core',
     '@nuxtjs/google-fonts'
   ],
-  components: {
-    dirs: [{
-      path: '~/components',
-      extensions: ['vue']
-    }]
-  },
-
   devtools: {
     enabled: true
   },

@@ -1,13 +1,24 @@
-import { gte } from 'drizzle-orm'
+import { eq, gte } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
 
 export default defineApiHandler(async (event) => {
   const query = getQuery(event)
   const monthCount = Math.min(Number(query.months) || 6, 24)
 
+  // Lire le mois sélectionné en DB (fallback = mois courant)
+  const setting = await db
+    .select()
+    .from(schema.appSettings)
+    .where(eq(schema.appSettings.key, 'selected_month'))
+    .limit(1)
+
   const now = new Date()
-  const startDate = new Date(now.getFullYear(), now.getMonth() - monthCount + 1, 1)
-  const endDate = new Date(now.getFullYear(), now.getMonth() + 1, 1)
+  const selectedMonthStr = setting[0]?.value ?? `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, '0')}`
+  const [refYear, refMonth] = selectedMonthStr.split('-').map(Number)
+  const refDate = new Date(refYear!, refMonth! - 1, 1)
+
+  const startDate = new Date(refDate.getFullYear(), refDate.getMonth() - monthCount + 1, 1)
+  const endDate = new Date(refDate.getFullYear(), refDate.getMonth() + 1, 1)
 
   const startStr = `${startDate.getFullYear()}-${String(startDate.getMonth() + 1).padStart(2, '0')}-01`
   const endStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-01`
