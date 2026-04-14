@@ -18,7 +18,7 @@ export function initBudgetAccountingView() {
 
   // Filters
   const typeFilter = ref<'all' | 'income' | 'expense'>('all')
-  const categoryFilter = ref<string | null>(null)
+  const categoryFilter = ref<string | undefined>(undefined)
   const searchQuery = ref('')
   const amountMin = ref<number | null>(null)
   const amountMax = ref<number | null>(null)
@@ -84,7 +84,7 @@ export function initBudgetAccountingView() {
 
   function resetFilters() {
     typeFilter.value = 'all'
-    categoryFilter.value = null
+    categoryFilter.value = undefined
     searchQuery.value = ''
     amountMin.value = null
     amountMax.value = null

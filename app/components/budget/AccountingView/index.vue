@@ -126,7 +126,7 @@ const typeFilterOptions = [
         class="w-44"
         :disabled="uncategorizedOnly"
         :trailing-icon="categoryFilter ? 'i-lucide-x' : undefined"
-        @click:trailing="categoryFilter = null"
+        @click:trailing="categoryFilter = undefined"
       />
 
       <UPopover>
