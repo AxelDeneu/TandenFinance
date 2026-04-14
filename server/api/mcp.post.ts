@@ -1,4 +1,5 @@
 import type { H3Event } from 'h3'
+import { timingSafeEqual } from 'crypto'
 
 const PROTOCOL_VERSION = '2025-03-26'
 const SERVER_INFO = { name: 'tandenfinance-mcp', version: '0.1.0' }
@@ -173,7 +174,9 @@ function requireAuth(event: H3Event) {
     throw createError({ statusCode: 500, message: 'MCP token not configured (NUXT_MCP_TOKEN)' })
   }
   const header = getHeader(event, 'authorization') ?? ''
-  if (header !== `Bearer ${expected}`) {
+  const headerBuf = Buffer.from(header)
+  const expectedBuf = Buffer.from(`Bearer ${expected}`)
+  if (headerBuf.length !== expectedBuf.length || !timingSafeEqual(headerBuf, expectedBuf)) {
     throw createError({ statusCode: 401, message: 'Unauthorized' })
   }
 }

@@ -58,7 +58,7 @@ export async function joinRecurringEntries<T extends { recurringEntryId: number 
   if (entryIds.length === 0) return rows.map(row => ({ ...row, recurringEntry: null }))
 
   const entries = await db.select().from(schema.recurringEntries).where(inArray(schema.recurringEntries.id, entryIds))
-  const map = new Map(entries.map(e => [e.id, e]))
+  const map = new Map(entries.map(e => [e.id, { ...e, amount: parseFloat(e.amount) }]))
   return rows.map(row => ({
     ...row,
     recurringEntry: row.recurringEntryId ? map.get(row.recurringEntryId) ?? null : null
@@ -74,7 +74,7 @@ export async function createRecurringEntry(event: H3Event, type: EntryType, vali
     .values({
       type,
       label: body.label,
-      amount: body.amount,
+      amount: String(body.amount),
       category: body.category ?? null,
       dayOfMonth: body.dayOfMonth ?? null,
       active: body.active ?? true,
@@ -84,7 +84,7 @@ export async function createRecurringEntry(event: H3Event, type: EntryType, vali
     })
     .returning()
 
-  return result
+  return result ? { ...result, amount: parseFloat(result.amount) } : result
 }
 
 export async function updateRecurringEntry(event: H3Event, type: EntryType, validationSchema: ZodType<Partial<RecurringEntryBody>>) {
@@ -96,7 +96,7 @@ export async function updateRecurringEntry(event: H3Event, type: EntryType, vali
     .update(schema.recurringEntries)
     .set({
       label: body.label ?? existing.label,
-      amount: body.amount ?? existing.amount,
+      amount: body.amount !== undefined ? String(body.amount) : existing.amount,
       category: body.category !== undefined ? (body.category ?? null) : existing.category,
       dayOfMonth: body.dayOfMonth !== undefined ? (body.dayOfMonth ?? null) : existing.dayOfMonth,
       active: body.active ?? existing.active,
@@ -106,7 +106,7 @@ export async function updateRecurringEntry(event: H3Event, type: EntryType, vali
     .where(eq(schema.recurringEntries.id, id))
     .returning()
 
-  return result
+  return result ? { ...result, amount: parseFloat(result.amount) } : result
 }
 
 export async function deleteRecurringEntry(event: H3Event, type: EntryType) {
@@ -124,5 +124,5 @@ export async function toggleRecurringEntry(event: H3Event, type: EntryType) {
     .set({ active: !existing.active, updatedAt: new Date() })
     .where(eq(schema.recurringEntries.id, id))
     .returning()
-  return result
+  return result ? { ...result, amount: parseFloat(result.amount) } : result
 }

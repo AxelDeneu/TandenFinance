@@ -8,7 +8,7 @@ export default defineApiHandler(async (event) => {
     .insert(schema.transactions)
     .values({
       label: body.label,
-      amount: body.amount,
+      amount: String(body.amount),
       type: body.type,
       date: body.date,
       recurringEntryId: body.recurringEntryId ?? null,

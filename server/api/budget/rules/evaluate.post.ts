@@ -37,11 +37,11 @@ export default defineApiHandler(async () => {
 
   const totalIncome = transactions
     .filter(t => t.type === 'income')
-    .reduce((sum, t) => sum + t.amount, 0)
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0)
 
   const totalExpense = transactions
     .filter(t => t.type === 'expense')
-    .reduce((sum, t) => sum + t.amount, 0)
+    .reduce((sum, t) => sum + parseFloat(t.amount), 0)
 
   const remaining = totalIncome - totalExpense
 
@@ -50,7 +50,7 @@ export default defineApiHandler(async () => {
   for (const tx of transactions) {
     const entry = entries.find(e => e.id === tx.recurringEntryId)
     const cat = entry?.category ?? 'Non catégorisé'
-    categoryTotals.set(cat, (categoryTotals.get(cat) ?? 0) + tx.amount)
+    categoryTotals.set(cat, (categoryTotals.get(cat) ?? 0) + parseFloat(tx.amount))
   }
 
   // Envelope totals (transactions linked to envelope entries)
@@ -58,7 +58,7 @@ export default defineApiHandler(async () => {
   const envelopeTotals = new Map<number, number>()
   for (const tx of transactions) {
     if (tx.recurringEntryId && envelopeEntries.some(e => e.id === tx.recurringEntryId)) {
-      envelopeTotals.set(tx.recurringEntryId, (envelopeTotals.get(tx.recurringEntryId) ?? 0) + tx.amount)
+      envelopeTotals.set(tx.recurringEntryId, (envelopeTotals.get(tx.recurringEntryId) ?? 0) + parseFloat(tx.amount))
     }
   }
 
@@ -94,11 +94,11 @@ export default defineApiHandler(async () => {
       const envelope = envelopeEntries.find(e => e.id === envelopeId)
       if (!envelope) continue
       const spent = envelopeTotals.get(envelopeId) ?? 0
-      if (spent > envelope.amount) {
+      if (spent > parseFloat(envelope.amount)) {
         newNotifications.push({
           ruleId: rule.id,
           title: `Enveloppe "${envelope.label}" dépassée`,
-          body: `Dépensé ${spent.toFixed(2)} € sur ${envelope.amount.toFixed(2)} € prévus (${monthLabel}).`,
+          body: `Dépensé ${spent.toFixed(2)} € sur ${parseFloat(envelope.amount).toFixed(2)} € prévus (${monthLabel}).`,
           icon: 'i-lucide-wallet',
           color: 'error',
           read: false,

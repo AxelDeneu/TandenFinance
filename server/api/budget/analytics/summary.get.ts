@@ -30,8 +30,8 @@ export default defineApiHandler(async (event) => {
       monthlyData.set(monthKey, { income: 0, expense: 0 })
     }
     const m = monthlyData.get(monthKey)!
-    if (tx.type === 'income') m.income += tx.amount
-    else m.expense += tx.amount
+    if (tx.type === 'income') m.income += parseFloat(tx.amount)
+    else m.expense += parseFloat(tx.amount)
   }
 
   const months = [...monthlyData.entries()].sort(([a], [b]) => a.localeCompare(b))
@@ -58,7 +58,7 @@ export default defineApiHandler(async (event) => {
     const monthKey = tx.date.slice(0, 7)
     if (!categoryByMonth.has(cat)) categoryByMonth.set(cat, new Map())
     const catMap = categoryByMonth.get(cat)!
-    catMap.set(monthKey, (catMap.get(monthKey) ?? 0) + tx.amount)
+    catMap.set(monthKey, (catMap.get(monthKey) ?? 0) + parseFloat(tx.amount))
   }
 
   // Growth calculation: compare first half vs second half averages

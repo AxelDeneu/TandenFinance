@@ -57,8 +57,8 @@ export default defineApiHandler(async (event) => {
       }
       const entryMap = actualsByEntry.get(tx.recurringEntryId)!
       const amount = (envelopeIds.has(tx.recurringEntryId) && tx.type === 'income')
-        ? -tx.amount
-        : tx.amount
+        ? -parseFloat(tx.amount)
+        : parseFloat(tx.amount)
       entryMap.set(key, (entryMap.get(key) ?? 0) + amount)
     } else {
       if (!uncategorizedByMonth.has(key)) {
@@ -66,9 +66,9 @@ export default defineApiHandler(async (event) => {
       }
       const uncat = uncategorizedByMonth.get(key)!
       if (tx.type === 'income') {
-        uncat.income += tx.amount
+        uncat.income += parseFloat(tx.amount)
       } else {
-        uncat.expense += tx.amount
+        uncat.expense += parseFloat(tx.amount)
       }
     }
   }
@@ -80,7 +80,7 @@ export default defineApiHandler(async (event) => {
         const key = `${m.year}-${m.month}`
         entryActuals[key] = actualsByEntry.get(entry.id)?.get(key) ?? null
       }
-      return { entry, actuals: entryActuals }
+      return { entry: { ...entry, amount: parseFloat(entry.amount) }, actuals: entryActuals }
     })
   }
 

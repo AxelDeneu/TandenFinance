@@ -10,7 +10,7 @@ export default defineApiHandler(async (event) => {
     .update(schema.transactions)
     .set({
       label: body.label ?? existing.label,
-      amount: body.amount ?? existing.amount,
+      amount: String(body.amount ?? existing.amount),
       type: body.type ?? existing.type,
       date: body.date ?? existing.date,
       recurringEntryId: body.recurringEntryId !== undefined ? (body.recurringEntryId ?? null) : existing.recurringEntryId,
