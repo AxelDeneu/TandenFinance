@@ -25,6 +25,14 @@ export function stubNuxtAutoImports(overrides?: Record<string, unknown>) {
     separator: 'h-0'
   })
   vi.stubGlobal('useRoute', () => ({ query: {} }))
+  vi.stubGlobal('useSelectedMonth', () => {
+    const setMonth = vi.fn()
+    return { setMonth }
+  })
+  vi.stubGlobal('useColorMode', () => {
+    const mode = { value: 'light', preference: 'light' }
+    return mode
+  })
   vi.stubGlobal('useToast', () => ({ add: vi.fn() }))
   vi.stubGlobal('$fetch', vi.fn())
   vi.stubGlobal('useTemplateRef', () => ref(null))

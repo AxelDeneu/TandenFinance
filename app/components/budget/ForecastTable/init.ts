@@ -5,7 +5,7 @@ import { sortableHeader } from '~/utils/table'
 import type { ForecastData, ForecastEntry, EntryType, RecurringEntry } from '~/types'
 
 export function initBudgetForecastTable() {
-  const { selectedYear, selectedMonth, monthKey } = useMonthNavigation()
+  const { selectedYear, selectedMonth, selectedMonthLabel, monthKey, previousMonth, nextMonth } = useMonthNavigation()
 
   const selectedEntry = ref<RecurringEntry | null>(null)
   const entryDetailOpen = ref(false)
@@ -268,10 +268,13 @@ export function initBudgetForecastTable() {
   return {
     selectedYear,
     selectedMonth,
+    selectedMonthLabel,
     monthKey,
     data,
     status,
     refresh,
+    previousMonth,
+    nextMonth,
     incomeColumns,
     expenseColumns,
     envelopeColumns,

@@ -104,7 +104,10 @@ export function initBudgetHistoryView(ctx: Context) {
 
   function navigateToMonth(year: number, month: number) {
     setMonth(`${year}-${String(month).padStart(2, '0')}`)
-    router.push('/budget/previsionnel')
+    router.push({
+      path: '/budget/previsionnel',
+      query: { year: String(year), month: String(month) }
+    })
   }
 
   function varianceCell(effective: number, planned: number, goodWhen: 'gte' | 'lte') {
