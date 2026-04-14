@@ -26,8 +26,14 @@ export function stubNuxtAutoImports(overrides?: Record<string, unknown>) {
   })
   vi.stubGlobal('useRoute', () => ({ query: {} }))
   vi.stubGlobal('useSelectedMonth', () => {
-    const setMonth = vi.fn()
-    return { setMonth }
+    const month = ref('2026-04')
+    return {
+      selectedMonth: computed(() => month.value),
+      selectedMonthLabel: computed(() => 'avril 2026'),
+      setMonth: vi.fn((v: string) => { month.value = v }),
+      previousMonth: vi.fn(),
+      nextMonth: vi.fn()
+    }
   })
   vi.stubGlobal('useColorMode', () => {
     const mode = { value: 'light', preference: 'light' }
