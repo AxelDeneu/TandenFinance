@@ -118,7 +118,7 @@ describe('initBudgetAccountingView', () => {
     expect(filteredTransactions.value).toHaveLength(1)
     expect(filteredTransactions.value[0].label).toBe('Loyer')
 
-    categoryFilter.value = null
+    categoryFilter.value = undefined
     expect(filteredTransactions.value).toHaveLength(4)
   })
 
@@ -237,7 +237,7 @@ describe('initBudgetAccountingView', () => {
     resetFilters()
 
     expect(typeFilter.value).toBe('all')
-    expect(categoryFilter.value).toBeNull()
+    expect(categoryFilter.value).toBeUndefined()
     expect(searchQuery.value).toBe('')
     expect(amountMin.value).toBeNull()
     expect(amountMax.value).toBeNull()
