@@ -1,6 +1,6 @@
 # 💰 TandenFinance
 
-[![Nuxt](https://img.shields.io/badge/Nuxt-3.x-00DC82?logo=nuxt&labelColor=020420)](https://nuxt.com)
+[![Nuxt](https://img.shields.io/badge/Nuxt-4.x-00DC82?logo=nuxt&labelColor=020420)](https://nuxt.com)
 [![TypeScript](https://img.shields.io/badge/TypeScript-5.x-3178C6?logo=typescript&labelColor=white)](https://www.typescriptlang.org)
 [![Nuxt UI](https://img.shields.io/badge/Nuxt%20UI-v4-00DC82?logo=nuxt&labelColor=020420)](https://ui.nuxt.com)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -11,18 +11,19 @@
 
 ## ✨ Features
 
+### Currently Available
 - 📊 **Dashboard Overview** — At-a-glance summary of your financial situation
 - 💳 **Transaction Tracking** — Log and categorize income and expenses
 - 🗂️ **Budget Categories** — Organize spending by custom categories
-- 🏦 **Account Management** — Manage multiple bank accounts and balances
-- 📈 **Financial Reports & Visualizations** — Charts and graphs powered by Unovis
-- 🔁 **Recurring Expenses** — Track subscriptions and regular bills
-- 🎯 **Budget Goals & Limits** — Set targets and get notified when you're close
 - ⌨️ **Keyboard Shortcuts** — Fast navigation (`g-h`, `g-i`, `g-c`, `g-s`, `n`)
 - 🌗 **Light & Dark Mode** — Full theme support
 - 📱 **Responsive Design** — Works on desktop and mobile
 
-> **Note:** TandenFinance is a work in progress. Some features are planned and not yet implemented.
+### Planned
+- 🏦 **Account Management** — Manage multiple bank accounts and balances
+- 📈 **Financial Reports & Visualizations** — Charts and graphs powered by Unovis
+- 🔁 **Recurring Expenses** — Track subscriptions and regular bills
+- 🎯 **Budget Goals & Limits** — Set targets and get notified when you're close
 
 ---
 
@@ -135,7 +136,7 @@ docker compose up -d
 ```
 TandenFinance/
 ├── app/
-│   ├── pages/          # File-based routing (index, customers, inbox, settings/*)
+│   ├── pages/          # File-based routing (index, transactions, budget, settings/*)
 │   ├── components/     # Vue components organized by feature
 │   ├── composables/    # Shared Vue composables (useDashboard.ts, ...)
 │   ├── layouts/        # Layout components (default.vue)
@@ -152,6 +153,12 @@ TandenFinance/
 ├── docker-compose.yml
 └── nuxt.config.ts
 ```
+
+---
+
+## 🔄 Dependency Updates
+
+This project uses [Renovate](https://github.com/apps/renovate) to keep dependencies up to date automatically. Install the [Renovate GitHub App](https://github.com/apps/renovate/installations/select_target) on your fork to enable it.
 
 ---
 
