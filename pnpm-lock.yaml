@@ -26,9 +26,6 @@ importers:
       '@nuxt/scripts':
         specifier: 0.13.2
         version: 0.13.2(@unhead/vue@2.1.4(vue@3.5.28(typescript@5.9.3)))(db0@0.3.4(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.0)(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260212.0)(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.0)(postgres@3.4.8)))(ioredis@5.9.2)(magicast@0.5.1)(typescript@5.9.3)(vue@3.5.28(typescript@5.9.3))
-      '@nuxt/test-utils':
-        specifier: 4.0.0
-        version: 4.0.0(@playwright/test@1.58.2)(@vitest/ui@4.0.18)(@vue/test-utils@2.4.6)(happy-dom@20.6.1)(magicast@0.5.1)(playwright-core@1.58.2)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(yaml@2.8.2))(vitest@4.0.18)
       '@nuxt/ui':
         specifier: ^4.4.0
         version: 4.4.0(@tiptap/extensions@3.16.0(@tiptap/core@3.16.0(@tiptap/pm@3.16.0))(@tiptap/pm@3.16.0))(@tiptap/y-tiptap@3.0.1(prosemirror-model@1.25.4)(prosemirror-state@1.4.4)(prosemirror-view@1.41.5)(y-protocols@1.0.7(yjs@13.6.29))(yjs@13.6.29))(change-case@5.4.4)(db0@0.3.4(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.0)(drizzle-orm@0.45.1(@cloudflare/workers-types@4.20260212.0)(@electric-sql/pglite@0.3.15)(@libsql/client@0.17.0)(postgres@3.4.8)))(embla-carousel@8.6.0)(ioredis@5.9.2)(magicast@0.5.1)(tailwindcss@4.1.18)(typescript@5.9.3)(valibot@1.2.0(typescript@5.9.3))(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(yaml@2.8.2))(vue-router@4.6.4(vue@3.5.28(typescript@5.9.3)))(vue@3.5.28(typescript@5.9.3))(yjs@13.6.29)(zod@4.3.6)
@@ -38,18 +35,6 @@ importers:
       '@nuxtjs/google-fonts':
         specifier: 3.2.0
         version: 3.2.0(magicast@0.5.1)
-      '@oxc-minify/binding-linux-x64-gnu':
-        specifier: ^0.116.0
-        version: 0.116.0
-      '@oxc-parser/binding-linux-x64-gnu':
-        specifier: ^0.116.0
-        version: 0.116.0
-      '@oxc-resolver/binding-linux-x64-gnu':
-        specifier: ^11.19.1
-        version: 11.19.1
-      '@oxc-transform/binding-linux-x64-gnu':
-        specifier: ^0.116.0
-        version: 0.116.0
       '@tanstack/table-core':
         specifier: ^8.21.3
         version: 8.21.3
@@ -59,9 +44,6 @@ importers:
       '@unovis/vue':
         specifier: ^1.6.4
         version: 1.6.4(@unovis/ts@1.6.4)(vue@3.5.28(typescript@5.9.3))
-      '@vitest/ui':
-        specifier: ^4.0.18
-        version: 4.0.18(vitest@4.0.18)
       '@vueuse/core':
         specifier: ^14.2.0
         version: 14.2.0(vue@3.5.28(typescript@5.9.3))
@@ -99,6 +81,9 @@ importers:
       '@nuxt/eslint':
         specifier: ^1.14.0
         version: 1.14.0(@typescript-eslint/utils@8.54.0(eslint@10.0.0(jiti@2.6.1))(typescript@5.9.3))(@vue/compiler-sfc@3.5.28)(eslint@10.0.0(jiti@2.6.1))(magicast@0.5.1)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(yaml@2.8.2))
+      '@nuxt/test-utils':
+        specifier: 4.0.0
+        version: 4.0.0(@playwright/test@1.58.2)(@vitest/ui@4.0.18)(@vue/test-utils@2.4.6)(happy-dom@20.6.1)(magicast@0.5.1)(playwright-core@1.58.2)(typescript@5.9.3)(vite@7.3.1(@types/node@25.2.3)(jiti@2.6.1)(lightningcss@1.31.1)(terser@5.46.0)(yaml@2.8.2))(vitest@4.0.18)
       '@playwright/test':
         specifier: ^1.58.2
         version: 1.58.2
@@ -106,6 +91,9 @@ importers:
         specifier: ^5.5.2
         version: 5.5.2
       '@vitest/coverage-v8':
+        specifier: ^4.0.18
+        version: 4.0.18(vitest@4.0.18)
+      '@vitest/ui':
         specifier: ^4.0.18
         version: 4.0.18(vitest@4.0.18)
       '@vue/test-utils':
@@ -129,6 +117,19 @@ importers:
       vue-tsc:
         specifier: ^3.2.4
         version: 3.2.4(typescript@5.9.3)
+    optionalDependencies:
+      '@oxc-minify/binding-linux-x64-gnu':
+        specifier: ^0.116.0
+        version: 0.116.0
+      '@oxc-parser/binding-linux-x64-gnu':
+        specifier: ^0.116.0
+        version: 0.116.0
+      '@oxc-resolver/binding-linux-x64-gnu':
+        specifier: ^11.19.1
+        version: 11.19.1
+      '@oxc-transform/binding-linux-x64-gnu':
+        specifier: ^0.116.0
+        version: 0.116.0
 
 packages:
 
@@ -1449,6 +1450,7 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@oxc-minify/binding-linux-x64-musl@0.112.0':
     resolution: {integrity: sha512-HAPfmQKlkVi97/zRonVE9t/kKUG3ni+mOuU1Euw+3s37KwUuOJjmcwXdclVgXKBlTkCGO0FajPwW5dAJeIXCCw==}
@@ -1673,6 +1675,7 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@oxc-parser/binding-linux-x64-musl@0.111.0':
     resolution: {integrity: sha512-Lyp667vONplix+7nhXY7XaszByIB/+CyG32VWu+/JWS4ZXjiMNwkN8LceH+Ii4cDuh3a+YMg3xIAwZdiMUzSyQ==}
@@ -1759,6 +1762,7 @@ packages:
     resolution: {integrity: sha512-NxjZe+rqWhr+RT8/Ik+5ptA3oz7tUw361Wa5RWQXKnfqwSSHdHyrw6IdcTfYuml9dM856AlKWZIUXDmA9kkiBQ==}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@oxc-transform/binding-android-arm-eabi@0.112.0':
     resolution: {integrity: sha512-r4LuBaPnOAi0eUOBNi880Fm2tO2omH7N1FRrL6+nyz/AjQ+QPPLtoyZJva0O+sKi1buyN/7IzM5p9m+5ANSDbg==}
@@ -1856,6 +1860,7 @@ packages:
     engines: {node: ^20.19.0 || >=22.12.0}
     cpu: [x64]
     os: [linux]
+    libc: [glibc]
 
   '@oxc-transform/binding-linux-x64-musl@0.112.0':
     resolution: {integrity: sha512-ISQoA3pD4cyTGpf9sXXeerH6pL2L6EIpdy6oAy2ttkswyVFDyQNVOVIGIdLZDgbpmqGljxZnWqt/J/N68pQaig==}
@@ -8984,7 +8989,8 @@ snapshots:
   '@oxc-minify/binding-linux-x64-gnu@0.112.0':
     optional: true
 
-  '@oxc-minify/binding-linux-x64-gnu@0.116.0': {}
+  '@oxc-minify/binding-linux-x64-gnu@0.116.0':
+    optional: true
 
   '@oxc-minify/binding-linux-x64-musl@0.112.0':
     optional: true
@@ -9090,7 +9096,8 @@ snapshots:
   '@oxc-parser/binding-linux-x64-gnu@0.112.0':
     optional: true
 
-  '@oxc-parser/binding-linux-x64-gnu@0.116.0': {}
+  '@oxc-parser/binding-linux-x64-gnu@0.116.0':
+    optional: true
 
   '@oxc-parser/binding-linux-x64-musl@0.111.0':
     optional: true
@@ -9138,7 +9145,8 @@ snapshots:
 
   '@oxc-project/types@0.112.0': {}
 
-  '@oxc-resolver/binding-linux-x64-gnu@11.19.1': {}
+  '@oxc-resolver/binding-linux-x64-gnu@11.19.1':
+    optional: true
 
   '@oxc-transform/binding-android-arm-eabi@0.112.0':
     optional: true
@@ -9182,7 +9190,8 @@ snapshots:
   '@oxc-transform/binding-linux-x64-gnu@0.112.0':
     optional: true
 
-  '@oxc-transform/binding-linux-x64-gnu@0.116.0': {}
+  '@oxc-transform/binding-linux-x64-gnu@0.116.0':
+    optional: true
 
   '@oxc-transform/binding-linux-x64-musl@0.112.0':
     optional: true
