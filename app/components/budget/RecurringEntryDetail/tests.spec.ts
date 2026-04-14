@@ -1,7 +1,7 @@
-import { describe, it, expect, vi } from 'vitest'
-import { ref, computed } from 'vue'
+import { describe, it, expect } from 'vitest'
+import { ref } from 'vue'
 import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
-import type { Transaction } from '~/types'
+import type { Transaction, RecurringEntry } from '~/types'
 
 const mockTransactions: Transaction[] = [
   { id: 1, label: 'Médecin', amount: 30, type: 'expense', date: '2026-03-05', recurringEntryId: 10, notes: null, createdAt: '', updatedAt: '' },
@@ -20,9 +20,9 @@ const { initRecurringEntryDetail } = await import('./init')
 
 describe('initRecurringEntryDetail', () => {
   it('totalSpent sums all amounts for non-envelope entry', () => {
-    const entry = ref({ id: 10, type: 'expense' as const, label: 'Test', amount: 30, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
+    const entry = ref<RecurringEntry>({ id: 10, type: 'expense', label: 'Test', amount: 30, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
     const { totalSpent } = initRecurringEntryDetail({
-      entry: entry as any,
+      entry: entry,
       year: ref(2026),
       month: ref(3)
     })
@@ -32,9 +32,9 @@ describe('initRecurringEntryDetail', () => {
   })
 
   it('totalSpent subtracts income transactions for envelope entry', () => {
-    const entry = ref({ id: 10, type: 'envelope' as const, label: 'Santé', amount: 30, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
+    const entry = ref<RecurringEntry>({ id: 10, type: 'envelope', label: 'Santé', amount: 30, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
     const { totalSpent } = initRecurringEntryDetail({
-      entry: entry as any,
+      entry: entry,
       year: ref(2026),
       month: ref(3)
     })
@@ -44,9 +44,9 @@ describe('initRecurringEntryDetail', () => {
   })
 
   it('budgetRemaining accounts for income reimbursements in envelope', () => {
-    const entry = ref({ id: 10, type: 'envelope' as const, label: 'Santé', amount: 30, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
+    const entry = ref<RecurringEntry>({ id: 10, type: 'envelope', label: 'Santé', amount: 30, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
     const { budgetRemaining } = initRecurringEntryDetail({
-      entry: entry as any,
+      entry: entry,
       year: ref(2026),
       month: ref(3)
     })
@@ -56,9 +56,9 @@ describe('initRecurringEntryDetail', () => {
   })
 
   it('progressPercent is 0 when envelope fully reimbursed', () => {
-    const entry = ref({ id: 10, type: 'envelope' as const, label: 'Santé', amount: 30, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
+    const entry = ref<RecurringEntry>({ id: 10, type: 'envelope', label: 'Santé', amount: 30, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
     const { progressPercent } = initRecurringEntryDetail({
-      entry: entry as any,
+      entry: entry,
       year: ref(2026),
       month: ref(3)
     })
@@ -68,9 +68,9 @@ describe('initRecurringEntryDetail', () => {
   })
 
   it('filters transactions by entry id', () => {
-    const entry = ref({ id: 999, type: 'envelope' as const, label: 'Other', amount: 100, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
+    const entry = ref<RecurringEntry>({ id: 999, type: 'envelope', label: 'Other', amount: 100, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' })
     const { filteredTransactions } = initRecurringEntryDetail({
-      entry: entry as any,
+      entry: entry,
       year: ref(2026),
       month: ref(3)
     })
