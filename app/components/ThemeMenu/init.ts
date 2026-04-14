@@ -7,8 +7,11 @@ interface ThemeMenuContext {
 export function initThemeMenu(_ctx: ThemeMenuContext) {
   const appConfig = useAppConfig()
 
+  const colorMode = useColorMode()
+
   const colors = ['red', 'orange', 'amber', 'yellow', 'lime', 'green', 'emerald', 'teal', 'cyan', 'sky', 'blue', 'indigo', 'violet', 'purple', 'fuchsia', 'pink', 'rose']
   const neutrals = ['slate', 'gray', 'zinc', 'neutral', 'stone']
+  const appearances = ['light', 'dark', 'system']
 
   const items = computed<DropdownMenuItem[][]>(() => ([[{
     label: 'Thème',
@@ -54,6 +57,18 @@ export function initThemeMenu(_ctx: ThemeMenuContext) {
         }
       }))
     }]
+  }, {
+    label: 'Apparence',
+    icon: 'i-lucide-sun-moon',
+    children: appearances.map(appearance => ({
+      label: appearance,
+      checked: colorMode.preference === appearance,
+      type: 'checkbox' as const,
+      onSelect: (e: Event) => {
+        e.preventDefault()
+        colorMode.preference = appearance
+      }
+    }))
   }]]))
 
   return {

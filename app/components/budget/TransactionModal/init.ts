@@ -81,6 +81,15 @@ export function initTransactionModal(ctx: TransactionModalContext) {
     return categoryOptions.value.filter(o => o.group === 'Revenus' || o.group === 'Enveloppes')
   })
 
+  // Auto-select type based on selected recurring entry (sync to run before type watcher)
+  watch(() => state.recurringEntryId, (id) => {
+    if (!id) return
+    const option = categoryOptions.value.find(o => o.value === id)
+    if (option) {
+      state.type = option.type
+    }
+  }, { flush: 'sync' })
+
   // Reset category when type changes and current selection is no longer valid
   watch(() => state.type, () => {
     if (!state.recurringEntryId) return
@@ -153,6 +162,7 @@ export function initTransactionModal(ctx: TransactionModalContext) {
     state,
     isEdit,
     modalTitle,
+    categoryOptions,
     filteredCategoryOptions,
     existingLabels,
     onSubmit
