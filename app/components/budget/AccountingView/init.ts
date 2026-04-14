@@ -5,6 +5,7 @@ import { sortableHeader } from '~/utils/table'
 import type { Transaction } from '~/types'
 
 export function initBudgetAccountingView() {
+  const { showErrorToast } = useErrorToast()
   const { selectedYear, selectedMonth, selectedMonthLabel, previousMonth, nextMonth } = useMonthNavigation()
 
   const { data: transactions, status, refresh } = useFetch<Transaction[]>('/api/budget/transactions', {
@@ -147,12 +148,8 @@ export function initBudgetAccountingView() {
         color: 'success'
       })
       refresh()
-    } catch {
-      toast.add({
-        title: 'Erreur',
-        description: 'Une erreur est survenue',
-        color: 'error'
-      })
+    } catch (error) {
+      showErrorToast('Une erreur est survenue', error)
     }
   }
 

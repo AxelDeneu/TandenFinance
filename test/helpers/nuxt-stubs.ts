@@ -40,6 +40,7 @@ export function stubNuxtAutoImports(overrides?: Record<string, unknown>) {
     return mode
   })
   vi.stubGlobal('useToast', () => ({ add: vi.fn() }))
+  vi.stubGlobal('useErrorToast', () => ({ showErrorToast: vi.fn() }))
   vi.stubGlobal('$fetch', vi.fn())
   vi.stubGlobal('useTemplateRef', () => ref(null))
 

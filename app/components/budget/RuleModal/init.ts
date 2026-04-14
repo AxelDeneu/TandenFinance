@@ -21,6 +21,7 @@ interface RuleModalContext {
 
 export function initBudgetRuleModal(ctx: RuleModalContext) {
   const toast = useToast()
+  const { showErrorToast } = useErrorToast()
 
   const state = reactive<Partial<BudgetRuleSchema>>({
     label: '',
@@ -111,8 +112,8 @@ export function initBudgetRuleModal(ctx: RuleModalContext) {
       }
       ctx.open.value = false
       ctx.emit('saved')
-    } catch {
-      toast.add({ title: 'Erreur', description: 'Une erreur est survenue', color: 'error' })
+    } catch (error) {
+      showErrorToast('Une erreur est survenue', error)
     }
   }
 

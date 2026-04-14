@@ -9,6 +9,7 @@ interface BudgetDeleteModalContext {
 
 export function initBudgetDeleteModal(ctx: BudgetDeleteModalContext) {
   const toast = useToast()
+  const { showErrorToast } = useErrorToast()
 
   async function onConfirm() {
     if (!ctx.props.entry) return
@@ -24,12 +25,8 @@ export function initBudgetDeleteModal(ctx: BudgetDeleteModalContext) {
       })
       ctx.open.value = false
       ctx.emit('deleted')
-    } catch {
-      toast.add({
-        title: 'Erreur',
-        description: 'Une erreur est survenue lors de la suppression',
-        color: 'error'
-      })
+    } catch (error) {
+      showErrorToast('Une erreur est survenue lors de la suppression', error)
     }
   }
 

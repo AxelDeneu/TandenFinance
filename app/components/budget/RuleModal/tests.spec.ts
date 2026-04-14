@@ -6,9 +6,11 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { BudgetRule } from '~/types'
 
 const mockToastAdd = vi.fn()
+const mockShowErrorToast = vi.fn()
 
 stubNuxtAutoImports({
   useToast: () => ({ add: mockToastAdd }),
+  useErrorToast: () => ({ showErrorToast: mockShowErrorToast }),
   useFetch: () => ({ data: ref([]) })
 })
 
@@ -215,7 +217,7 @@ describe('initBudgetRuleModal', () => {
     const { onSubmit } = initBudgetRuleModal(ctx)
     await onSubmit({ data: { label: 'Test', type: 'remaining_low' } } as unknown as FormSubmitEvent<BudgetRuleSchema>)
 
-    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
     expect(ctx.open.value).toBe(true)
     expect(ctx.emit).not.toHaveBeenCalled()
   })

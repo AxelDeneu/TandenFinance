@@ -12,7 +12,7 @@ interface BudgetRecurringTableContext {
 }
 
 export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
-  const toast = useToast()
+  const { showErrorToast } = useErrorToast()
   const table = useTemplateRef<{ tableApi?: {
     getFilteredRowModel: () => { rows: unknown[] }
     getState: () => { pagination: { pageIndex: number, pageSize: number } }
@@ -52,12 +52,8 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
       })
       await refresh()
       ctx.emit('updated')
-    } catch {
-      toast.add({
-        title: 'Erreur',
-        description: 'Impossible de modifier le statut',
-        color: 'error'
-      })
+    } catch (error) {
+      showErrorToast('Impossible de modifier le statut', error)
     }
   }
 

@@ -22,6 +22,7 @@ interface BudgetEntryModalContext {
 
 export function initBudgetEntryModal(ctx: BudgetEntryModalContext) {
   const toast = useToast()
+  const { showErrorToast } = useErrorToast()
 
   const state = reactive<Partial<BudgetEntrySchema>>({
     label: '',
@@ -89,12 +90,8 @@ export function initBudgetEntryModal(ctx: BudgetEntryModalContext) {
       }
       ctx.open.value = false
       ctx.emit('saved')
-    } catch {
-      toast.add({
-        title: 'Erreur',
-        description: 'Une erreur est survenue',
-        color: 'error'
-      })
+    } catch (error) {
+      showErrorToast('Une erreur est survenue', error)
     }
   }
 

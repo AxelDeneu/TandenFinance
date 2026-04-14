@@ -3,9 +3,11 @@ import { ref } from 'vue'
 import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 
 const mockToastAdd = vi.fn()
+const mockShowErrorToast = vi.fn()
 
 stubNuxtAutoImports({
-  useToast: () => ({ add: mockToastAdd })
+  useToast: () => ({ add: mockToastAdd }),
+  useErrorToast: () => ({ showErrorToast: mockShowErrorToast })
 })
 
 const { initImportModal } = await import('./init')
@@ -143,7 +145,7 @@ describe('initImportModal', () => {
 
     await confirmImport()
 
-    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
     expect(ctx.emit).not.toHaveBeenCalled()
   })
 
@@ -171,7 +173,7 @@ describe('initImportModal', () => {
     vi.mocked($fetch).mockRejectedValueOnce(new Error('parse error'))
     const mockFile = new File(['bad'], 'bad.csv')
     await onFileSelected({ target: { files: [mockFile] } } as unknown as Event)
-    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
     expect(step.value).toBe(1)
   })
 
