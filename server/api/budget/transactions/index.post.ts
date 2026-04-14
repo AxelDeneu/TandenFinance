@@ -1,5 +1,4 @@
 import { db, schema } from 'hub:db'
-import { evaluateBudgetRules } from '~~/server/utils/evaluate-rules'
 
 export default defineApiHandler(async (event) => {
   const body = createTransactionSchema.parse(await readBody(event))

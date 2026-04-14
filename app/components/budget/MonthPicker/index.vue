@@ -37,7 +37,7 @@ function selectMonth(year: number, month: number) {
       trailing-icon="i-lucide-chevron-down"
       class="capitalize min-w-32 text-sm font-medium"
     />
-    <template #content>
+    <template #content="{ close }">
       <div class="p-3 w-64">
         <!-- Year navigation -->
         <div class="flex items-center justify-between mb-3">
@@ -67,7 +67,7 @@ function selectMonth(year: number, month: number) {
             color="neutral"
             size="xs"
             class="justify-center"
-            @click="selectMonth(displayYear, idx + 1)"
+            @click="selectMonth(displayYear, idx + 1); close()"
           />
         </div>
       </div>
