@@ -22,6 +22,7 @@ interface TransactionModalContext {
 
 export function initTransactionModal(ctx: TransactionModalContext) {
   const toast = useToast()
+  const { showErrorToast } = useErrorToast()
 
   const today = new Date().toISOString().slice(0, 10)
 
@@ -148,12 +149,8 @@ export function initTransactionModal(ctx: TransactionModalContext) {
       }
       ctx.open.value = false
       ctx.emit('saved')
-    } catch {
-      toast.add({
-        title: 'Erreur',
-        description: 'Une erreur est survenue',
-        color: 'error'
-      })
+    } catch (error) {
+      showErrorToast('Une erreur est survenue', error)
     }
   }
 

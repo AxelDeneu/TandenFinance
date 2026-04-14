@@ -6,9 +6,11 @@ import type { FormSubmitEvent } from '@nuxt/ui'
 import type { RecurringEntry } from '~/types'
 
 const mockToastAdd = vi.fn()
+const mockShowErrorToast = vi.fn()
 
 stubNuxtAutoImports({
-  useToast: () => ({ add: mockToastAdd })
+  useToast: () => ({ add: mockToastAdd }),
+  useErrorToast: () => ({ showErrorToast: mockShowErrorToast })
 })
 
 function createEntry(overrides: Partial<RecurringEntry> = {}): RecurringEntry {
@@ -164,7 +166,7 @@ describe('initBudgetEnvelopeModal', () => {
     const { onSubmit } = initBudgetEnvelopeModal(ctx)
     await onSubmit({ data: { label: 'Courses', amount: 500, active: true } } as unknown as FormSubmitEvent<BudgetEnvelopeSchema>)
 
-    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
     expect(ctx.open.value).toBe(true)
     expect(ctx.emit).not.toHaveBeenCalled()
   })

@@ -5,6 +5,7 @@ import type { BudgetRule } from '~/types'
 
 export function initBudgetRulesTable() {
   const toast = useToast()
+  const { showErrorToast } = useErrorToast()
 
   const { data: rules, status, refresh } = useFetch<BudgetRule[]>('/api/budget/rules', {
     lazy: true,
@@ -29,8 +30,8 @@ export function initBudgetRulesTable() {
       await $fetch(`/api/budget/rules/${rule.id}`, { method: 'DELETE' })
       toast.add({ title: 'Succès', description: `Règle "${rule.label}" supprimée`, color: 'success' })
       refresh()
-    } catch {
-      toast.add({ title: 'Erreur', description: 'Une erreur est survenue', color: 'error' })
+    } catch (error) {
+      showErrorToast('Une erreur est survenue', error)
     }
   }
 
@@ -38,8 +39,8 @@ export function initBudgetRulesTable() {
     try {
       await $fetch(`/api/budget/rules/${rule.id}/toggle`, { method: 'PATCH' })
       refresh()
-    } catch {
-      toast.add({ title: 'Erreur', description: 'Une erreur est survenue', color: 'error' })
+    } catch (error) {
+      showErrorToast('Une erreur est survenue', error)
     }
   }
 
@@ -51,8 +52,8 @@ export function initBudgetRulesTable() {
       } else {
         toast.add({ title: 'Évaluation terminée', description: 'Aucune alerte déclenchée', color: 'info' })
       }
-    } catch {
-      toast.add({ title: 'Erreur', description: 'Erreur lors de l\'évaluation', color: 'error' })
+    } catch (error) {
+      showErrorToast('Erreur lors de l\'évaluation', error)
     }
   }
 

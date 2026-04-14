@@ -10,10 +10,12 @@ vi.mock('#components', () => ({
 }))
 
 const mockToastAdd = vi.fn()
+const mockShowErrorToast = vi.fn()
 const mockRefresh = vi.fn()
 
 stubNuxtAutoImports({
   useToast: () => ({ add: mockToastAdd }),
+  useErrorToast: () => ({ showErrorToast: mockShowErrorToast }),
   useFetch: () => ({
     data: ref<RecurringEntry[]>([]),
     status: ref('idle'),
@@ -236,13 +238,7 @@ describe('initBudgetEnvelopeTable', () => {
     vi.mocked($fetch).mockRejectedValueOnce(new Error('fail'))
     await (switchVnode.props['onUpdate:modelValue'] as () => Promise<void>)()
 
-    expect(mockToastAdd).toHaveBeenCalledWith(
-      expect.objectContaining({
-        title: 'Erreur',
-        description: 'Impossible de modifier le statut',
-        color: 'error'
-      })
-    )
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
   })
 
   it('labelSearch returns empty string when table ref is null', () => {

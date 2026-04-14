@@ -4,8 +4,10 @@ import { initBudgetDeleteModal } from './init'
 import type { RecurringEntry, EntryType } from '~/types'
 
 const mockToastAdd = vi.fn()
+const mockShowErrorToast = vi.fn()
 
 vi.stubGlobal('useToast', () => ({ add: mockToastAdd }))
+vi.stubGlobal('useErrorToast', () => ({ showErrorToast: mockShowErrorToast }))
 vi.stubGlobal('$fetch', vi.fn())
 
 function createEntry(overrides: Partial<RecurringEntry> = {}): RecurringEntry {
@@ -80,9 +82,7 @@ describe('initBudgetDeleteModal', () => {
     const { onConfirm } = initBudgetDeleteModal(ctx)
     await onConfirm()
 
-    expect(mockToastAdd).toHaveBeenCalledWith(
-      expect.objectContaining({ color: 'error' })
-    )
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
     expect(ctx.open.value).toBe(true)
     expect(ctx.emit).not.toHaveBeenCalled()
   })

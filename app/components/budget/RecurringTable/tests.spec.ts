@@ -11,10 +11,12 @@ vi.mock('#components', () => ({
 }))
 
 const mockToastAdd = vi.fn()
+const mockShowErrorToast = vi.fn()
 const mockRefresh = vi.fn()
 
 stubNuxtAutoImports({
   useToast: () => ({ add: mockToastAdd }),
+  useErrorToast: () => ({ showErrorToast: mockShowErrorToast }),
   useFetch: () => ({
     data: ref<RecurringEntry[]>([]),
     status: ref('idle'),
@@ -322,10 +324,6 @@ describe('initBudgetRecurringTable', () => {
     vi.mocked($fetch).mockRejectedValueOnce(new Error('Network error'))
     await onUpdate()
 
-    expect(mockToastAdd).toHaveBeenCalledWith({
-      title: 'Erreur',
-      description: 'Impossible de modifier le statut',
-      color: 'error'
-    })
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
   })
 })

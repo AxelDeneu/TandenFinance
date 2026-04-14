@@ -15,6 +15,7 @@ interface ParsedRow extends ImportParsedRow {
 
 export function initImportModal(ctx: ImportModalContext) {
   const toast = useToast()
+  const { showErrorToast } = useErrorToast()
 
   const step = ref<1 | 2 | 3>(1)
   const loading = ref(false)
@@ -57,8 +58,8 @@ export function initImportModal(ctx: ImportModalContext) {
       }))
 
       step.value = 2
-    } catch {
-      toast.add({ title: 'Erreur', description: 'Erreur lors du parsing du CSV', color: 'error' })
+    } catch (error) {
+      showErrorToast('Erreur lors du parsing du CSV', error)
     } finally {
       loading.value = false
     }
@@ -127,8 +128,8 @@ export function initImportModal(ctx: ImportModalContext) {
 
       ctx.open.value = false
       ctx.emit('imported')
-    } catch {
-      toast.add({ title: 'Erreur', description: 'Erreur lors de l\'import', color: 'error' })
+    } catch (error) {
+      showErrorToast('Erreur lors de l\'import', error)
     } finally {
       loading.value = false
     }

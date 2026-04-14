@@ -10,10 +10,12 @@ vi.mock('#components', () => ({
 }))
 
 const mockToastAdd = vi.fn()
+const mockShowErrorToast = vi.fn()
 const mockRefresh = vi.fn()
 
 stubNuxtAutoImports({
   useToast: () => ({ add: mockToastAdd }),
+  useErrorToast: () => ({ showErrorToast: mockShowErrorToast }),
   useFetch: () => ({
     data: ref<BudgetRule[]>([]),
     status: ref('idle'),
@@ -118,7 +120,7 @@ describe('initBudgetRulesTable', () => {
 
     await evaluateRules()
 
-    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
   })
 
   function createRule(overrides: Partial<BudgetRule> = {}): BudgetRule {
@@ -168,7 +170,7 @@ describe('initBudgetRulesTable', () => {
     const deleteButton = (actionsVnode.children as TestVNode[])[1]
     await (deleteButton.props.onClick as () => Promise<void>)()
 
-    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
   })
 
   it('toggleRule calls PATCH and refreshes', async () => {
@@ -191,7 +193,7 @@ describe('initBudgetRulesTable', () => {
     const activeVnode = renderColumn(columns, 2, rule)
     await (activeVnode.props['onUpdate:modelValue'] as () => Promise<void>)()
 
-    expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'error' }))
+    expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
   })
 
   it('column label cell renders span with rule label', () => {
