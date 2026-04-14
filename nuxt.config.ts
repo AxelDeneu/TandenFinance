@@ -35,7 +35,11 @@ export default defineNuxtConfig({
 
   routeRules: {
     '/api/**': {
-      cors: true
+      headers: {
+        'Access-Control-Allow-Origin': process.env.NUXT_PUBLIC_SITE_URL ?? 'https://tandenfinance.nuxt.dev',
+        'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type,Authorization'
+      }
     }
   },
 

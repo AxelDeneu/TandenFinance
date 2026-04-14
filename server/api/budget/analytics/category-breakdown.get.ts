@@ -59,7 +59,7 @@ export default defineApiHandler(async (event) => {
     const entry = tx.recurringEntryId ? entryMap.get(tx.recurringEntryId) : null
     const cat = entry?.category ?? 'Divers'
     const map = tx.type === 'income' ? incomesByCategory : expensesByCategory
-    map.set(cat, (map.get(cat) ?? 0) + tx.amount)
+    map.set(cat, (map.get(cat) ?? 0) + parseFloat(tx.amount))
   }
 
   function buildBreakdown(map: Map<string, number>) {

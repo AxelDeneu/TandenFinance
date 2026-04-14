@@ -43,7 +43,7 @@ export default defineApiHandler(async (event) => {
       categoryData.set(key, { type, months: new Map() })
     }
     const data = categoryData.get(key)!
-    data.months.set(monthKey, (data.months.get(monthKey) ?? 0) + tx.amount)
+    data.months.set(monthKey, (data.months.get(monthKey) ?? 0) + parseFloat(tx.amount))
   }
 
   const categories = [...categoryData.entries()].map(([key, data]) => {
