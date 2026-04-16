@@ -1,5 +1,6 @@
 import { like, desc } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { transactionListSelect } from '../../../utils/transactions'
 
 export default defineApiHandler(async (event) => {
   const query = getQuery(event)
@@ -8,7 +9,7 @@ export default defineApiHandler(async (event) => {
   if (!q) return []
 
   const rows = await db
-    .select()
+    .select(transactionListSelect)
     .from(schema.transactions)
     .where(like(schema.transactions.label, `%${q}%`))
     .orderBy(desc(schema.transactions.date))

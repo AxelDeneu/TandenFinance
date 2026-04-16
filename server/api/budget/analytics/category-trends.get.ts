@@ -1,5 +1,6 @@
 import { eq, gte } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { transactionAnalyticsSelect } from '../../../utils/transactions'
 
 export default defineApiHandler(async (event) => {
   const query = getQuery(event)
@@ -24,7 +25,7 @@ export default defineApiHandler(async (event) => {
   const endStr = `${endDate.getFullYear()}-${String(endDate.getMonth() + 1).padStart(2, '0')}-01`
 
   const transactions = await db
-    .select()
+    .select(transactionAnalyticsSelect)
     .from(schema.transactions)
     .where(gte(schema.transactions.date, startStr))
 

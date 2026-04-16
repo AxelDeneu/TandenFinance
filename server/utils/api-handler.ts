@@ -46,7 +46,15 @@ export async function requireRecurringEntry(id: number, type: EntryType) {
 
 export async function requireTransaction(id: number) {
   const [existing] = await db
-    .select()
+    .select({
+      id: schema.transactions.id,
+      label: schema.transactions.label,
+      amount: schema.transactions.amount,
+      type: schema.transactions.type,
+      date: schema.transactions.date,
+      recurringEntryId: schema.transactions.recurringEntryId,
+      notes: schema.transactions.notes
+    })
     .from(schema.transactions)
     .where(eq(schema.transactions.id, id))
   if (!existing) throw createError({ statusCode: 404, message: 'Transaction non trouvée' })
