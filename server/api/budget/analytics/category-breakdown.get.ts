@@ -1,5 +1,6 @@
 import { like } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { transactionAnalyticsSelect } from '~/server/utils/transactions'
 
 const CHART_COLORS: Record<string, string> = {
   'Loyer': '#f59e0b',
@@ -45,7 +46,7 @@ export default defineApiHandler(async (event) => {
   const datePrefix = `${year}-${String(month).padStart(2, '0')}`
 
   const transactions = await db
-    .select()
+    .select(transactionAnalyticsSelect)
     .from(schema.transactions)
     .where(like(schema.transactions.date, `${datePrefix}%`))
 

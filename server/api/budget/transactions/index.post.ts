@@ -1,4 +1,5 @@
 import { db, schema } from 'hub:db'
+import { transactionListSelect } from '~/server/utils/transactions'
 
 export default defineApiHandler(async (event) => {
   const body = createTransactionSchema.parse(await readBody(event))
@@ -16,7 +17,7 @@ export default defineApiHandler(async (event) => {
       createdAt: now,
       updatedAt: now
     })
-    .returning()
+    .returning(transactionListSelect)
 
   // Déclencher l'évaluation des règles en arrière-plan (fire-and-forget)
   evaluateBudgetRules().catch(console.error)
