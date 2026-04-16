@@ -4,7 +4,7 @@ import { initBudgetHistoryView } from './init'
 
 const cardRef = useTemplateRef<HTMLElement | null>('cardRef')
 
-const { width, chartData, monthlySummaries, columns, status, x, yIncome, yExpenses, xTicks, template } = initBudgetHistoryView({ cardRef })
+const { width, chartData, hasChartData, monthlySummaries, columns, status, x, yIncome, yExpenses, xTicks, template } = initBudgetHistoryView({ cardRef })
 </script>
 
 <template>
@@ -31,49 +31,55 @@ const { width, chartData, monthlySummaries, columns, status, x, yIncome, yExpens
         </div>
       </template>
 
-      <VisXYContainer
-        :data="chartData"
-        :padding="{ top: 40 }"
-        class="h-96"
-        :width="width"
-      >
-        <VisLine
-          :x="x"
-          :y="yIncome"
-          color="var(--ui-success)"
-        />
-        <VisArea
-          :x="x"
-          :y="yIncome"
-          color="var(--ui-success)"
-          :opacity="0.07"
-        />
+      <template v-if="hasChartData">
+        <VisXYContainer
+          :data="chartData"
+          :padding="{ top: 40 }"
+          class="h-96"
+          :width="width"
+        >
+          <VisLine
+            :x="x"
+            :y="yIncome"
+            color="var(--ui-success)"
+          />
+          <VisArea
+            :x="x"
+            :y="yIncome"
+            color="var(--ui-success)"
+            :opacity="0.07"
+          />
 
-        <VisLine
-          :x="x"
-          :y="yExpenses"
-          color="var(--ui-error)"
-        />
-        <VisArea
-          :x="x"
-          :y="yExpenses"
-          color="var(--ui-error)"
-          :opacity="0.07"
-        />
+          <VisLine
+            :x="x"
+            :y="yExpenses"
+            color="var(--ui-error)"
+          />
+          <VisArea
+            :x="x"
+            :y="yExpenses"
+            color="var(--ui-error)"
+            :opacity="0.07"
+          />
 
-        <VisAxis
-          type="x"
-          :x="x"
-          :tick-format="xTicks"
-        />
+          <VisAxis
+            type="x"
+            :x="x"
+            :tick-format="xTicks"
+          />
 
-        <VisCrosshair
-          color="var(--ui-text-muted)"
-          :template="template"
-        />
+          <VisCrosshair
+            color="var(--ui-text-muted)"
+            :template="template"
+          />
 
-        <VisTooltip />
-      </VisXYContainer>
+          <VisTooltip />
+        </VisXYContainer>
+      </template>
+
+      <div v-else class="h-96 flex items-center justify-center text-sm text-muted">
+        Aucune donnée historique disponible pour l'instant.
+      </div>
     </UCard>
 
     <UCard>
