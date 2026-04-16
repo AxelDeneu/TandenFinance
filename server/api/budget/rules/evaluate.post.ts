@@ -1,5 +1,6 @@
 import { eq, like } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { transactionAnalyticsSelect } from '../../../utils/transactions'
 
 interface RuleConfig {
   threshold?: number
@@ -25,7 +26,7 @@ export default defineApiHandler(async () => {
 
   // Fetch current month transactions
   const transactions = await db
-    .select()
+    .select(transactionAnalyticsSelect)
     .from(schema.transactions)
     .where(like(schema.transactions.date, `${datePrefix}%`))
 

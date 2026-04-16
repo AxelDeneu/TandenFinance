@@ -1,5 +1,5 @@
-import { inArray } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { buildTransactionFingerprint, buildTransactionFingerprintSet } from '../../../utils/transactions'
 
 export default defineApiHandler(async (event) => {
   const body = confirmImportSchema.parse(await readBody(event))
@@ -7,24 +7,24 @@ export default defineApiHandler(async (event) => {
 
   // Calculate fingerprints for all incoming transactions
   const fingerprints = body.transactions.map(tx =>
-    buildFingerprint(tx.date, tx.label, tx.amount)
+    buildTransactionFingerprint(tx)
   )
 
-  // Check for existing duplicates
-  const existingFingerprints = fingerprints.length > 0
+  // Check for existing duplicates using date + label + amount fingerprints
+  const existingTransactions = fingerprints.length > 0
     ? await db
-      .select({ fingerprint: schema.transactions.fingerprint })
+      .select({
+        date: schema.transactions.date,
+        label: schema.transactions.label,
+        amount: schema.transactions.amount
+      })
       .from(schema.transactions)
-      .where(inArray(schema.transactions.fingerprint, fingerprints))
     : []
 
-  const duplicateSet = new Set(existingFingerprints.map(r => r.fingerprint).filter(Boolean))
+  const duplicateSet = buildTransactionFingerprintSet(existingTransactions)
 
   // Only keep new (non-duplicate) transactions
   const newTransactions = body.transactions.filter((_tx, i) =>
-    !duplicateSet.has(fingerprints[i]!)
-  )
-  const newFingerprints = fingerprints.filter((_fp, i) =>
     !duplicateSet.has(fingerprints[i]!)
   )
 
@@ -46,7 +46,7 @@ export default defineApiHandler(async (event) => {
 
   // Create transactions in batch (only non-duplicates)
   if (newTransactions.length > 0) {
-    const values = newTransactions.map((tx, i) => ({
+    const values = newTransactions.map(tx => ({
       label: tx.label,
       amount: String(tx.amount),
       type: tx.type as 'income' | 'expense',
@@ -54,7 +54,6 @@ export default defineApiHandler(async (event) => {
       recurringEntryId: tx.recurringEntryId ?? null,
       importBatchId: batch.id,
       notes: tx.notes ?? null,
-      fingerprint: newFingerprints[i],
       createdAt: now,
       updatedAt: now
     }))

@@ -1,5 +1,6 @@
 import { eq } from 'drizzle-orm'
 import { db, schema } from 'hub:db'
+import { transactionListSelect } from '../../../utils/transactions'
 
 export default defineApiHandler(async (event) => {
   const id = requireRouteId(event)
@@ -18,7 +19,7 @@ export default defineApiHandler(async (event) => {
       updatedAt: new Date()
     })
     .where(eq(schema.transactions.id, id))
-    .returning()
+    .returning(transactionListSelect)
 
   return result
 })
