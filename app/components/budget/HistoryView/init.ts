@@ -84,6 +84,8 @@ export function initBudgetHistoryView(ctx: Context) {
     }))
   })
 
+  const hasChartData = computed(() => chartData.value.length > 0)
+
   // Unovis accessors
   const x = (_: HistoryChartRecord, i: number) => i
   const yIncome = (d: HistoryChartRecord) => d.income
@@ -94,13 +96,16 @@ export function initBudgetHistoryView(ctx: Context) {
     return chartData.value[i].month
   }
 
-  const template = (d: HistoryChartRecord) =>
-    `<div style="font-size:12px;padding:4px 0">
+  const template = (d?: HistoryChartRecord) => {
+    if (!d) return ''
+
+    return `<div style="font-size:12px;padding:4px 0">
       <div><strong>${d.month}</strong></div>
       <div style="color:var(--ui-success)">Revenus: ${formatEuro(d.income)}</div>
       <div style="color:var(--ui-error)">Depenses: ${formatEuro(d.expenses)}</div>
       <div>Reste: ${formatEuro(d.income - d.expenses)}</div>
     </div>`
+  }
 
   function navigateToMonth(year: number, month: number) {
     setMonth(`${year}-${String(month).padStart(2, '0')}`)
@@ -165,6 +170,7 @@ export function initBudgetHistoryView(ctx: Context) {
     status,
     monthlySummaries,
     chartData,
+    hasChartData,
     columns,
     x,
     yIncome,

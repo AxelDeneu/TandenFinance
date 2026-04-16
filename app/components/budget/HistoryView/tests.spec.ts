@@ -65,6 +65,7 @@ describe('initBudgetHistoryView', () => {
       'status',
       'monthlySummaries',
       'chartData',
+      'hasChartData',
       'columns',
       'x',
       'yIncome',
@@ -341,6 +342,12 @@ describe('initBudgetHistoryView', () => {
     expect(result).toContain('Reste')
   })
 
+  it('template returns an empty string when no datum is provided', () => {
+    const { template } = initBudgetHistoryView(createContext())
+
+    expect(template(undefined)).toBe('')
+  })
+
   // -------------------------------------------------------
   // 11. Empty data edge case
   // -------------------------------------------------------
@@ -350,9 +357,10 @@ describe('initBudgetHistoryView', () => {
       return { data: ref(emptyData), status: ref('idle'), ...(opts?.default ? {} : {}) }
     })
 
-    const { monthlySummaries, chartData } = initBudgetHistoryView(createContext())
+    const { monthlySummaries, chartData, hasChartData } = initBudgetHistoryView(createContext())
     expect(monthlySummaries.value).toHaveLength(0)
     expect(chartData.value).toHaveLength(0)
+    expect(hasChartData.value).toBe(false)
 
     // Restore
     vi.stubGlobal('useFetch', (_url: string, opts?: { default?: () => ForecastData }) => {
