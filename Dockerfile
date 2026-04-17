@@ -25,6 +25,6 @@ ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
 EXPOSE 3000
-COPY start.sh ./start.sh
-RUN chmod +x ./start.sh
+COPY start.sh migrate.sh ./
+RUN chmod +x ./start.sh ./migrate.sh
 CMD ["./start.sh"]
