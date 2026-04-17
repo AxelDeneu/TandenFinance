@@ -5,6 +5,10 @@ export default defineApiHandler(async (event) => {
   const body = createTransactionSchema.parse(await readBody(event))
   const now = new Date()
 
+  if (body.recurringEntryId != null) {
+    await requireRecurringEntryExists(body.recurringEntryId)
+  }
+
   const [result] = await db
     .insert(schema.transactions)
     .values({

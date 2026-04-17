@@ -7,6 +7,10 @@ export default defineApiHandler(async (event) => {
   const body = updateTransactionSchema.parse(await readBody(event))
   const existing = await requireTransaction(id)
 
+  if (body.recurringEntryId != null) {
+    await requireRecurringEntryExists(body.recurringEntryId)
+  }
+
   const [result] = await db
     .update(schema.transactions)
     .set({

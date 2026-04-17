@@ -22,6 +22,7 @@ export function defineApiHandler<T>(handler: (event: H3Event) => Promise<T>) {
       if (error instanceof Error && error.name === 'ZodError') {
         throw createError({ statusCode: 400, message: 'Données invalides' })
       }
+      console.error(`[api] ${event.method} ${event.path} failed:`, error)
       throw createError({ statusCode: 500, message: 'Erreur serveur' })
     }
   })
@@ -41,6 +42,15 @@ export async function requireRecurringEntry(id: number, type: EntryType) {
     .from(schema.recurringEntries)
     .where(and(eq(schema.recurringEntries.id, id), eq(schema.recurringEntries.type, type)))
   if (!existing) throw createError({ statusCode: 404, message: 'Entrée non trouvée' })
+  return existing
+}
+
+export async function requireRecurringEntryExists(id: number) {
+  const [existing] = await db
+    .select({ id: schema.recurringEntries.id })
+    .from(schema.recurringEntries)
+    .where(eq(schema.recurringEntries.id, id))
+  if (!existing) throw createError({ statusCode: 400, message: 'Entrée récurrente introuvable' })
   return existing
 }
 
