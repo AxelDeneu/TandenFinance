@@ -21,10 +21,14 @@ RUN pnpm build
 FROM node:22-alpine AS runtime
 WORKDIR /app
 COPY --from=build /app/.output .output
+COPY --from=build /app/server/db/migrations/postgresql ./migrations
+COPY scripts/migrate.mjs ./migrate.mjs
+COPY start.sh ./start.sh
+RUN chmod +x ./start.sh \
+ && npm install --omit=dev --no-save --no-package-lock postgres@3.4.8 drizzle-orm@0.45.1
 ENV NODE_ENV=production
 ENV HOST=0.0.0.0
 ENV PORT=3000
+ENV MIGRATIONS_DIR=/app/migrations
 EXPOSE 3000
-COPY start.sh migrate.sh ./
-RUN chmod +x ./start.sh ./migrate.sh
 CMD ["./start.sh"]
