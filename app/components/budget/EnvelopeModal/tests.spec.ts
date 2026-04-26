@@ -44,7 +44,7 @@ describe('budgetEnvelopeSchema', () => {
       label: 'Courses',
       amount: 500,
       active: true,
-      notes: null
+      notes: undefined
     })
     expect(result.success).toBe(true)
   })

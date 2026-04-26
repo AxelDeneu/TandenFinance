@@ -7,7 +7,7 @@ export const budgetEnvelopeSchema = z.object({
   label: z.string().min(2, 'Minimum 2 caractères'),
   amount: z.coerce.number().positive('Le montant doit être positif'),
   active: z.boolean().default(true),
-  notes: z.string().nullable().optional()
+  notes: z.string().optional()
 })
 
 export type BudgetEnvelopeSchema = z.output<typeof budgetEnvelopeSchema>
