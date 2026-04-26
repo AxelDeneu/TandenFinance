@@ -11,7 +11,7 @@ const tabs = [
 <template>
   <div class="px-2 py-4 flex flex-col gap-5" style="max-width: 1440px; margin: 0 auto; width: 100%;">
     <TandenPageHead
-      title="Configuration"
+      title="Budget mensuel"
       lede="Gérez vos revenus, dépenses récurrentes et enveloppes mensuelles."
     />
 

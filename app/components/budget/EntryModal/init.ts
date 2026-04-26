@@ -1,12 +1,12 @@
 import * as z from 'zod'
 import type { Ref } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { RecurringEntry, EntryType } from '~/types'
+import type { RecurringEntry, EntryType, Category } from '~/types'
 
 export const budgetEntrySchema = z.object({
   label: z.string().min(2, 'Minimum 2 caractères'),
   amount: z.coerce.number().positive('Le montant doit être positif'),
-  category: z.string().min(1, 'Catégorie requise'),
+  categoryId: z.coerce.number().int().positive('Catégorie requise'),
   dayOfMonth: z.coerce.number().int().min(1, 'Minimum 1').max(31, 'Maximum 31'),
   active: z.boolean().default(true),
   notes: z.string().optional()
@@ -27,7 +27,7 @@ export function initBudgetEntryModal(ctx: BudgetEntryModalContext) {
   const state = reactive<Partial<BudgetEntrySchema>>({
     label: '',
     amount: undefined,
-    category: '',
+    categoryId: undefined,
     dayOfMonth: 1,
     active: true,
     notes: ''
@@ -42,23 +42,32 @@ export function initBudgetEntryModal(ctx: BudgetEntryModalContext) {
     return ctx.props.type === 'income' ? 'Nouveau revenu' : 'Nouvelle dépense'
   })
 
+  const { data: allCategories } = useFetch<Category[]>('/api/budget/categories', {
+    lazy: true,
+    default: () => []
+  })
+
+  // Envelopes are expense-side budgets, so they pick from expense categories.
+  const categoryFilterType = computed(() => ctx.props.type === 'income' ? 'income' : 'expense')
+
   const categories = computed(() => {
-    const items = ctx.props.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
-    return items.map(c => ({ label: c, value: c as string }))
+    return allCategories.value
+      .filter(c => c.type === categoryFilterType.value)
+      .map(c => ({ label: c.name, value: c.id }))
   })
 
   watch(() => ctx.props.entry, (entry) => {
     if (entry) {
       state.label = entry.label
       state.amount = entry.amount
-      state.category = entry.category ?? ''
+      state.categoryId = entry.categoryId ?? undefined
       state.dayOfMonth = entry.dayOfMonth ?? 1
       state.active = entry.active
       state.notes = entry.notes || ''
     } else {
       state.label = ''
       state.amount = undefined
-      state.category = ''
+      state.categoryId = undefined
       state.dayOfMonth = 1
       state.active = true
       state.notes = ''

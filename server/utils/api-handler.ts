@@ -8,6 +8,7 @@ interface RecurringEntryBody {
   label: string
   amount: number
   category?: string | null
+  categoryId?: number | null
   dayOfMonth?: number | null
   active?: boolean
   notes?: string | null
@@ -83,9 +84,17 @@ export async function joinRecurringEntries<T extends { recurringEntryId: number 
   }))
 }
 
+async function resolveCategoryName(categoryId?: number | null, fallback?: string | null): Promise<string | null> {
+  if (categoryId == null) return fallback ?? null
+  const [cat] = await db.select({ name: schema.categories.name }).from(schema.categories).where(eq(schema.categories.id, categoryId))
+  return cat?.name ?? fallback ?? null
+}
+
 export async function createRecurringEntry(event: H3Event, type: EntryType, validationSchema: ZodType<RecurringEntryBody>) {
   const body = validationSchema.parse(await readBody(event))
   const now = new Date()
+
+  const categoryName = await resolveCategoryName(body.categoryId, body.category)
 
   const [result] = await db
     .insert(schema.recurringEntries)
@@ -93,7 +102,8 @@ export async function createRecurringEntry(event: H3Event, type: EntryType, vali
       type,
       label: body.label,
       amount: String(body.amount),
-      category: body.category ?? null,
+      category: categoryName,
+      categoryId: body.categoryId ?? null,
       dayOfMonth: body.dayOfMonth ?? null,
       active: body.active ?? true,
       notes: body.notes ?? null,
@@ -110,12 +120,18 @@ export async function updateRecurringEntry(event: H3Event, type: EntryType, vali
   const body = validationSchema.parse(await readBody(event))
   const existing = await requireRecurringEntry(id, type)
 
+  const nextCategoryId = body.categoryId !== undefined ? (body.categoryId ?? null) : existing.categoryId
+  const nextCategoryName = body.categoryId !== undefined
+    ? await resolveCategoryName(nextCategoryId, body.category)
+    : (body.category !== undefined ? (body.category ?? null) : existing.category)
+
   const [result] = await db
     .update(schema.recurringEntries)
     .set({
       label: body.label ?? existing.label,
       amount: body.amount !== undefined ? String(body.amount) : existing.amount,
-      category: body.category !== undefined ? (body.category ?? null) : existing.category,
+      category: nextCategoryName,
+      categoryId: nextCategoryId,
       dayOfMonth: body.dayOfMonth !== undefined ? (body.dayOfMonth ?? null) : existing.dayOfMonth,
       active: body.active ?? existing.active,
       notes: body.notes !== undefined ? body.notes : existing.notes,

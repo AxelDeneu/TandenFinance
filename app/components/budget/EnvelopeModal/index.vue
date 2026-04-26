@@ -12,7 +12,7 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>('open', { default: false })
 
-const { schema, state, isEdit, modalTitle, onSubmit } = initBudgetEnvelopeModal({ props, emit, open })
+const { schema, state, isEdit, modalTitle, categories, onSubmit } = initBudgetEnvelopeModal({ props, emit, open })
 </script>
 
 <template>
@@ -48,6 +48,15 @@ const { schema, state, isEdit, modalTitle, onSubmit } = initBudgetEnvelopeModal(
             type="number"
             step="0.01"
             placeholder="0.00"
+            class="w-full"
+          />
+        </UFormField>
+
+        <UFormField label="Catégorie" name="categoryId">
+          <USelect
+            v-model="state.categoryId"
+            :items="categories"
+            placeholder="Choisir une catégorie"
             class="w-full"
           />
         </UFormField>

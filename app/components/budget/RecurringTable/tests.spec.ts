@@ -1,12 +1,13 @@
 import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
-import type { RecurringEntry, EntryType } from '~/types'
+import type { RecurringEntry, EntryType, Category } from '~/types'
 
 vi.mock('#components', () => ({
   UButton: 'UButton',
   UBadge: 'UBadge',
   USwitch: 'USwitch',
+  UIcon: 'UIcon',
   UDropdownMenu: 'UDropdownMenu'
 }))
 
@@ -14,14 +15,20 @@ const mockToastAdd = vi.fn()
 const mockShowErrorToast = vi.fn()
 const mockRefresh = vi.fn()
 
+const mockCategories: Category[] = [
+  { id: 1, name: 'Salaire', icon: 'i-lucide-briefcase', color: '#4ADE80', type: 'income', sortOrder: 10, createdAt: '', updatedAt: '' },
+  { id: 8, name: 'Logement', icon: 'i-lucide-home', color: '#60A5FA', type: 'expense', sortOrder: 20, createdAt: '', updatedAt: '' }
+]
+
 stubNuxtAutoImports({
   useToast: () => ({ add: mockToastAdd }),
   useErrorToast: () => ({ showErrorToast: mockShowErrorToast }),
-  useFetch: () => ({
-    data: ref<RecurringEntry[]>([]),
-    status: ref('idle'),
-    refresh: mockRefresh
-  })
+  useFetch: (url: string) => {
+    if (url.includes('categories')) {
+      return { data: ref(mockCategories), status: ref('idle'), refresh: mockRefresh }
+    }
+    return { data: ref<RecurringEntry[]>([]), status: ref('idle'), refresh: mockRefresh }
+  }
 })
 
 const { initBudgetRecurringTable } = await import('./init')
@@ -39,6 +46,7 @@ function createEntry(overrides: Partial<RecurringEntry> = {}): RecurringEntry {
     label: 'Loyer',
     amount: 800,
     category: 'Logement',
+    categoryId: 8,
     dayOfMonth: 5,
     active: true,
     notes: null,
@@ -117,7 +125,7 @@ describe('initBudgetRecurringTable', () => {
     expect(categoryItems.value[0]).toEqual({ label: 'Toutes', value: 'all' })
     expect(categoryItems.value).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ label: 'Logement', value: 'Logement' })
+        expect.objectContaining({ label: 'Logement', value: 8 })
       ])
     )
   })
@@ -128,7 +136,7 @@ describe('initBudgetRecurringTable', () => {
 
     expect(categoryItems.value).toEqual(
       expect.arrayContaining([
-        expect.objectContaining({ label: 'Salaire', value: 'Salaire' })
+        expect.objectContaining({ label: 'Salaire', value: 1 })
       ])
     )
   })
@@ -160,7 +168,7 @@ describe('initBudgetRecurringTable', () => {
     expect(columns).toHaveLength(6)
     expect(columns[0].accessorKey).toBe('label')
     expect(columns[1].accessorKey).toBe('amount')
-    expect(columns[2].accessorKey).toBe('category')
+    expect(columns[2].accessorKey).toBe('categoryId')
     expect(columns[3].accessorKey).toBe('dayOfMonth')
     expect(columns[4].accessorKey).toBe('active')
     expect(columns[5].id).toBe('actions')
@@ -195,20 +203,22 @@ describe('initBudgetRecurringTable', () => {
     expect(vnode.children).toBe('1250.50 €')
   })
 
-  it('column category cell renders UBadge with color', () => {
+  it('column category cell renders styled span when categoryId resolves', () => {
     const ctx = createContext()
     const { columns } = initBudgetRecurringTable(ctx)
-    const entry = createEntry({ category: 'Logement' })
+    const entry = createEntry({ categoryId: 8 })
 
     const vnode = renderColumn(columns, 2, entry)
 
-    expect(vnode.type).toBe('UBadge')
+    expect(vnode.type).toBe('span')
+    // children should be [icon, name]
+    expect(Array.isArray(vnode.children)).toBe(true)
   })
 
-  it('column category cell renders dash when category is null', () => {
+  it('column category cell renders dash when categoryId is null', () => {
     const ctx = createContext()
     const { columns } = initBudgetRecurringTable(ctx)
-    const entry = createEntry({ category: null })
+    const entry = createEntry({ categoryId: null, category: null })
 
     const vnode = renderColumn(columns, 2, entry)
 
@@ -257,7 +267,6 @@ describe('initBudgetRecurringTable', () => {
     const vnode = renderColumn(columns, 5, entry)
 
     expect(vnode.type).toBe('div')
-    // h('div', props, h(UDropdownMenu, ...)) stores child as single vnode in children
     const children = Array.isArray(vnode.children) ? vnode.children : [vnode.children]
     const dropdownVnode = children[0] as TestVNode
     expect(dropdownVnode.type).toBe('UDropdownMenu')

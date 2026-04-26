@@ -20,6 +20,7 @@ function createEntry(overrides: Partial<RecurringEntry> = {}): RecurringEntry {
     label: 'Loyer',
     amount: 800,
     category: 'Logement',
+    categoryId: 8,
     dayOfMonth: 5,
     active: true,
     notes: 'Note test',
@@ -44,7 +45,7 @@ describe('budgetEntrySchema', () => {
     const result = budgetEntrySchema.safeParse({
       label: 'Loyer',
       amount: 800,
-      category: 'Logement',
+      categoryId: 8,
       dayOfMonth: 1,
       active: true,
       notes: undefined
@@ -56,7 +57,7 @@ describe('budgetEntrySchema', () => {
     const result = budgetEntrySchema.safeParse({
       label: 'L',
       amount: 800,
-      category: 'Logement',
+      categoryId: 8,
       dayOfMonth: 1,
       active: true
     })
@@ -67,7 +68,7 @@ describe('budgetEntrySchema', () => {
     const result = budgetEntrySchema.safeParse({
       label: 'Loyer',
       amount: -10,
-      category: 'Logement',
+      categoryId: 8,
       dayOfMonth: 1,
       active: true
     })
@@ -78,8 +79,18 @@ describe('budgetEntrySchema', () => {
     const result = budgetEntrySchema.safeParse({
       label: 'Loyer',
       amount: 800,
-      category: 'Logement',
+      categoryId: 8,
       dayOfMonth: 32,
+      active: true
+    })
+    expect(result.success).toBe(false)
+  })
+
+  it('rejects missing categoryId', () => {
+    const result = budgetEntrySchema.safeParse({
+      label: 'Loyer',
+      amount: 800,
+      dayOfMonth: 1,
       active: true
     })
     expect(result.success).toBe(false)
@@ -129,30 +140,8 @@ describe('initBudgetEntryModal', () => {
     expect(modalTitle.value).toBe('Modifier la dépense')
   })
 
-  it('categories returns income categories when type is income', () => {
-    const ctx = createContext({ type: 'income' })
-    const { categories } = initBudgetEntryModal(ctx)
-
-    expect(categories.value).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ label: 'Salaire', value: 'Salaire' })
-      ])
-    )
-  })
-
-  it('categories returns expense categories when type is expense', () => {
-    const ctx = createContext({ type: 'expense' })
-    const { categories } = initBudgetEntryModal(ctx)
-
-    expect(categories.value).toEqual(
-      expect.arrayContaining([
-        expect.objectContaining({ label: 'Logement', value: 'Logement' })
-      ])
-    )
-  })
-
   it('populates state from entry via watch', async () => {
-    const entry = createEntry({ label: 'Salaire', amount: 3000, dayOfMonth: 25 })
+    const entry = createEntry({ label: 'Salaire', amount: 3000, dayOfMonth: 25, categoryId: 1 })
     const ctx = createContext({ entry })
     const { state } = initBudgetEntryModal(ctx)
 
@@ -161,6 +150,7 @@ describe('initBudgetEntryModal', () => {
     expect(state.label).toBe('Salaire')
     expect(state.amount).toBe(3000)
     expect(state.dayOfMonth).toBe(25)
+    expect(state.categoryId).toBe(1)
   })
 
   it('resets state when entry becomes undefined', async () => {
@@ -172,6 +162,7 @@ describe('initBudgetEntryModal', () => {
     expect(state.label).toBe('')
     expect(state.amount).toBeUndefined()
     expect(state.dayOfMonth).toBe(1)
+    expect(state.categoryId).toBeUndefined()
   })
 
   it('onSubmit creates new entry via POST', async () => {
@@ -179,11 +170,11 @@ describe('initBudgetEntryModal', () => {
     vi.mocked($fetch).mockResolvedValueOnce(undefined)
 
     const { onSubmit } = initBudgetEntryModal(ctx)
-    await onSubmit({ data: { label: 'Salaire', amount: 3000, category: 'Salaire', dayOfMonth: 25, active: true } } as unknown as FormSubmitEvent<BudgetEntrySchema>)
+    await onSubmit({ data: { label: 'Salaire', amount: 3000, categoryId: 1, dayOfMonth: 25, active: true } } as unknown as FormSubmitEvent<BudgetEntrySchema>)
 
     expect($fetch).toHaveBeenCalledWith('/api/budget/incomes', {
       method: 'POST',
-      body: expect.objectContaining({ label: 'Salaire' })
+      body: expect.objectContaining({ label: 'Salaire', categoryId: 1 })
     })
     expect(ctx.open.value).toBe(false)
     expect(ctx.emit).toHaveBeenCalledWith('saved')
@@ -195,11 +186,11 @@ describe('initBudgetEntryModal', () => {
     vi.mocked($fetch).mockResolvedValueOnce(undefined)
 
     const { onSubmit } = initBudgetEntryModal(ctx)
-    await onSubmit({ data: { label: 'Loyer', amount: 850, category: 'Logement', dayOfMonth: 1, active: true } } as unknown as FormSubmitEvent<BudgetEntrySchema>)
+    await onSubmit({ data: { label: 'Loyer', amount: 850, categoryId: 8, dayOfMonth: 1, active: true } } as unknown as FormSubmitEvent<BudgetEntrySchema>)
 
     expect($fetch).toHaveBeenCalledWith('/api/budget/expenses/7', {
       method: 'PUT',
-      body: expect.objectContaining({ label: 'Loyer' })
+      body: expect.objectContaining({ label: 'Loyer', categoryId: 8 })
     })
     expect(mockToastAdd).toHaveBeenCalledWith(expect.objectContaining({ color: 'success' }))
   })
@@ -209,7 +200,7 @@ describe('initBudgetEntryModal', () => {
     vi.mocked($fetch).mockRejectedValueOnce(new Error('fail'))
 
     const { onSubmit } = initBudgetEntryModal(ctx)
-    await onSubmit({ data: { label: 'Loyer', amount: 800, category: 'Logement', dayOfMonth: 1, active: true } } as unknown as FormSubmitEvent<BudgetEntrySchema>)
+    await onSubmit({ data: { label: 'Loyer', amount: 800, categoryId: 8, dayOfMonth: 1, active: true } } as unknown as FormSubmitEvent<BudgetEntrySchema>)
 
     expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
     expect(ctx.open.value).toBe(true)

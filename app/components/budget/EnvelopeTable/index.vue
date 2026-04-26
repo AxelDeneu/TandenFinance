@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { RecurringEntry, ForecastData } from '~/types'
+import type { RecurringEntry, ForecastData, Category } from '~/types'
 import { initBudgetEnvelopeTable } from './init'
 
 const emit = defineEmits<{
@@ -17,6 +17,17 @@ const {
   onSaved,
   onDeleted
 } = initBudgetEnvelopeTable({ emit })
+
+const { data: categories } = useFetch<Category[]>('/api/budget/categories', {
+  lazy: true,
+  default: () => []
+})
+
+const categoriesById = computed(() => {
+  const map = new Map<number, Category>()
+  for (const c of categories.value) map.set(c.id, c)
+  return map
+})
 
 const { selectedMonth } = useSelectedMonth()
 const [year, month] = selectedMonth.value.split('-').map(Number)
@@ -43,6 +54,7 @@ const enriched = computed(() => {
     const over = spent > env.amount
     const near = pct > 80 && !over
     const remaining = env.amount - spent
+    const cat = env.categoryId ? categoriesById.value.get(env.categoryId) ?? null : null
     return {
       env,
       spent,
@@ -50,7 +62,7 @@ const enriched = computed(() => {
       over,
       near,
       remaining,
-      ...getCategoryStyle(env.category)
+      ...getCategoryStyle(cat ?? env.category)
     }
   })
 })

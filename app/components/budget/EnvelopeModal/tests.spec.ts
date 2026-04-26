@@ -20,6 +20,7 @@ function createEntry(overrides: Partial<RecurringEntry> = {}): RecurringEntry {
     label: 'Courses',
     amount: 500,
     category: null,
+    categoryId: 1,
     dayOfMonth: null,
     active: true,
     notes: 'Budget courses',
@@ -43,6 +44,7 @@ describe('budgetEnvelopeSchema', () => {
     const result = budgetEnvelopeSchema.safeParse({
       label: 'Courses',
       amount: 500,
+      categoryId: 1,
       active: true,
       notes: undefined
     })
@@ -53,6 +55,7 @@ describe('budgetEnvelopeSchema', () => {
     const result = budgetEnvelopeSchema.safeParse({
       label: 'C',
       amount: 500,
+      categoryId: 1,
       active: true
     })
     expect(result.success).toBe(false)
@@ -62,17 +65,18 @@ describe('budgetEnvelopeSchema', () => {
     const result = budgetEnvelopeSchema.safeParse({
       label: 'Courses',
       amount: -10,
+      categoryId: 1,
       active: true
     })
     expect(result.success).toBe(false)
   })
 
-  it('does not require category or dayOfMonth', () => {
+  it('requires categoryId', () => {
     const result = budgetEnvelopeSchema.safeParse({
       label: 'Courses',
       amount: 500
     })
-    expect(result.success).toBe(true)
+    expect(result.success).toBe(false)
   })
 })
 
@@ -134,11 +138,11 @@ describe('initBudgetEnvelopeModal', () => {
     vi.mocked($fetch).mockResolvedValueOnce(undefined)
 
     const { onSubmit } = initBudgetEnvelopeModal(ctx)
-    await onSubmit({ data: { label: 'Courses', amount: 500, active: true } } as unknown as FormSubmitEvent<BudgetEnvelopeSchema>)
+    await onSubmit({ data: { label: 'Courses', amount: 500, categoryId: 1, active: true } } as unknown as FormSubmitEvent<BudgetEnvelopeSchema>)
 
     expect($fetch).toHaveBeenCalledWith('/api/budget/envelopes', {
       method: 'POST',
-      body: expect.objectContaining({ label: 'Courses' })
+      body: expect.objectContaining({ label: 'Courses', categoryId: 1 })
     })
     expect(ctx.open.value).toBe(false)
     expect(ctx.emit).toHaveBeenCalledWith('saved')
@@ -150,7 +154,7 @@ describe('initBudgetEnvelopeModal', () => {
     vi.mocked($fetch).mockResolvedValueOnce(undefined)
 
     const { onSubmit } = initBudgetEnvelopeModal(ctx)
-    await onSubmit({ data: { label: 'Courses', amount: 600, active: true } } as unknown as FormSubmitEvent<BudgetEnvelopeSchema>)
+    await onSubmit({ data: { label: 'Courses', amount: 600, categoryId: 1, active: true } } as unknown as FormSubmitEvent<BudgetEnvelopeSchema>)
 
     expect($fetch).toHaveBeenCalledWith('/api/budget/envelopes/5', {
       method: 'PUT',
@@ -164,7 +168,7 @@ describe('initBudgetEnvelopeModal', () => {
     vi.mocked($fetch).mockRejectedValueOnce(new Error('fail'))
 
     const { onSubmit } = initBudgetEnvelopeModal(ctx)
-    await onSubmit({ data: { label: 'Courses', amount: 500, active: true } } as unknown as FormSubmitEvent<BudgetEnvelopeSchema>)
+    await onSubmit({ data: { label: 'Courses', amount: 500, categoryId: 1, active: true } } as unknown as FormSubmitEvent<BudgetEnvelopeSchema>)
 
     expect(mockShowErrorToast).toHaveBeenCalledWith(expect.any(String), expect.anything())
     expect(ctx.open.value).toBe(true)

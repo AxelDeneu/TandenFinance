@@ -1,11 +1,23 @@
 import { pgTable, serial, text, numeric, integer, boolean, timestamp } from 'drizzle-orm/pg-core'
 
+export const categories = pgTable('categories', {
+  id: serial().primaryKey(),
+  name: text().notNull(),
+  icon: text().notNull(),
+  color: text().notNull(),
+  type: text({ enum: ['income', 'expense'] }).notNull(),
+  sortOrder: integer('sort_order').notNull().default(0),
+  createdAt: timestamp('created_at').notNull(),
+  updatedAt: timestamp('updated_at').notNull()
+})
+
 export const recurringEntries = pgTable('recurring_entries', {
   id: serial().primaryKey(),
   type: text({ enum: ['income', 'expense', 'envelope'] }).notNull(),
   label: text().notNull(),
   amount: numeric({ precision: 12, scale: 2 }).notNull(),
   category: text(),
+  categoryId: integer('category_id').references(() => categories.id, { onDelete: 'set null' }),
   dayOfMonth: integer('day_of_month'),
   active: boolean().notNull().default(true),
   notes: text(),

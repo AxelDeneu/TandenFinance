@@ -1,5 +1,4 @@
-// Tanden Finance — visual style for categories (used in tables, badges, charts).
-// Maps a category label to a colour + Lucide icon.
+import type { Category } from '~/types'
 
 interface CategoryStyle {
   color: string
@@ -8,7 +7,7 @@ interface CategoryStyle {
 
 const FALLBACK: CategoryStyle = { color: '#6B7489', icon: 'i-lucide-tag' }
 
-const STYLES: Record<string, CategoryStyle> = {
+const STATIC_STYLES: Record<string, CategoryStyle> = {
   // Revenus
   'Salaire': { color: '#4ADE80', icon: 'i-lucide-briefcase' },
   'Freelance': { color: '#22D3EE', icon: 'i-lucide-laptop' },
@@ -51,12 +50,12 @@ const STYLES: Record<string, CategoryStyle> = {
   'Autre': { color: '#A5ADBE', icon: 'i-lucide-tag' }
 }
 
-export function getCategoryStyle(category: string | null | undefined): CategoryStyle {
+export function getCategoryStyle(category: Category | string | null | undefined): CategoryStyle {
   if (!category) return FALLBACK
-  return STYLES[category] ?? FALLBACK
+  if (typeof category === 'object') return { color: category.color, icon: category.icon }
+  return STATIC_STYLES[category] ?? FALLBACK
 }
 
 export function withAlpha(hex: string, alpha: string): string {
-  // hex like #1FB578, alpha like '14' (hex two-digit). Returns "#1FB57814".
   return `${hex}${alpha}`
 }

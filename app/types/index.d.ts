@@ -49,12 +49,26 @@ export interface Range {
 // Budget types
 export type EntryType = 'income' | 'expense' | 'envelope'
 
+export type CategoryType = 'income' | 'expense'
+
+export interface Category {
+  id: number
+  name: string
+  icon: string
+  color: string
+  type: CategoryType
+  sortOrder: number
+  createdAt: string
+  updatedAt: string
+}
+
 export interface RecurringEntry {
   id: number
   type: EntryType
   label: string
   amount: number
   category: string | null
+  categoryId: number | null
   dayOfMonth: number | null
   active: boolean
   notes: string | null

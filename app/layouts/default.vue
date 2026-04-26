@@ -27,8 +27,8 @@ const links = [{
     open.value = false
   }
 }, {
-  label: 'Configuration',
-  icon: 'i-lucide-settings',
+  label: 'Budget mensuel',
+  icon: 'i-lucide-wallet',
   to: '/budget',
   exact: true,
   onSelect: () => {
@@ -66,6 +66,13 @@ const links = [{
   label: 'Alertes',
   icon: 'i-lucide-bell',
   to: '/budget/alertes',
+  onSelect: () => {
+    open.value = false
+  }
+}, {
+  label: 'Configuration',
+  icon: 'i-lucide-settings',
+  to: '/configuration',
   onSelect: () => {
     open.value = false
   }

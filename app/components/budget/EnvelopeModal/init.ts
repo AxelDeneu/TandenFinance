@@ -1,11 +1,12 @@
 import * as z from 'zod'
 import type { Ref } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { RecurringEntry } from '~/types'
+import type { RecurringEntry, Category } from '~/types'
 
 export const budgetEnvelopeSchema = z.object({
   label: z.string().min(2, 'Minimum 2 caractères'),
   amount: z.coerce.number().positive('Le montant doit être positif'),
+  categoryId: z.coerce.number().int().positive('Catégorie requise'),
   active: z.boolean().default(true),
   notes: z.string().optional()
 })
@@ -25,6 +26,7 @@ export function initBudgetEnvelopeModal(ctx: BudgetEnvelopeModalContext) {
   const state = reactive<Partial<BudgetEnvelopeSchema>>({
     label: '',
     amount: undefined,
+    categoryId: undefined,
     active: true,
     notes: ''
   })
@@ -35,15 +37,28 @@ export function initBudgetEnvelopeModal(ctx: BudgetEnvelopeModalContext) {
     return isEdit.value ? 'Modifier l\'enveloppe' : 'Nouvelle enveloppe'
   })
 
+  const { data: allCategories } = useFetch<Category[]>('/api/budget/categories', {
+    lazy: true,
+    default: () => []
+  })
+
+  const categories = computed(() => {
+    return allCategories.value
+      .filter(c => c.type === 'expense')
+      .map(c => ({ label: c.name, value: c.id }))
+  })
+
   watch(() => ctx.props.entry, (entry) => {
     if (entry) {
       state.label = entry.label
       state.amount = entry.amount
+      state.categoryId = entry.categoryId ?? undefined
       state.active = entry.active
       state.notes = entry.notes || ''
     } else {
       state.label = ''
       state.amount = undefined
+      state.categoryId = undefined
       state.active = true
       state.notes = ''
     }
@@ -84,6 +99,7 @@ export function initBudgetEnvelopeModal(ctx: BudgetEnvelopeModalContext) {
     state,
     isEdit,
     modalTitle,
+    categories,
     onSubmit
   }
 }

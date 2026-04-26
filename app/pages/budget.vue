@@ -2,8 +2,8 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const links = [[{
-  label: 'Configuration',
-  icon: 'i-lucide-settings',
+  label: 'Budget mensuel',
+  icon: 'i-lucide-wallet',
   to: '/budget',
   exact: true
 }, {
