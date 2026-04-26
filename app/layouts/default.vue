@@ -3,6 +3,7 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 import type { Transaction } from '~/types'
 
 const router = useRouter()
+const route = useRoute()
 
 const open = ref(false)
 const collapsed = ref(true)
@@ -19,64 +20,36 @@ function onMouseLeave() {
   }, 200)
 }
 
-const links = [{
+const closeOpen = () => {
+  open.value = false
+}
+
+const budgetChildren = [
+  { label: 'Mensuel', icon: 'i-lucide-layout-dashboard', to: '/budget', exact: true },
+  { label: 'Comptabilité', icon: 'i-lucide-receipt', to: '/budget/comptabilite' },
+  { label: 'Prévisionnel', icon: 'i-lucide-calendar-range', to: '/budget/previsionnel' },
+  { label: 'Historique', icon: 'i-lucide-history', to: '/budget/historique' },
+  { label: 'Analyse', icon: 'i-lucide-bar-chart-3', to: '/budget/analyse' },
+  { label: 'Alertes', icon: 'i-lucide-bell', to: '/budget/alertes' }
+]
+
+const links = computed<NavigationMenuItem[]>(() => [{
   label: 'Accueil',
   icon: 'i-lucide-house',
   to: '/',
-  onSelect: () => {
-    open.value = false
-  }
+  onSelect: closeOpen
 }, {
-  label: 'Budget mensuel',
+  label: 'Budget',
   icon: 'i-lucide-wallet',
-  to: '/budget',
-  exact: true,
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Comptabilité',
-  icon: 'i-lucide-receipt',
-  to: '/budget/comptabilite',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Prévisionnel',
-  icon: 'i-lucide-calendar-range',
-  to: '/budget/previsionnel',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Historique',
-  icon: 'i-lucide-history',
-  to: '/budget/historique',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Analyse',
-  icon: 'i-lucide-bar-chart-3',
-  to: '/budget/analyse',
-  onSelect: () => {
-    open.value = false
-  }
-}, {
-  label: 'Alertes',
-  icon: 'i-lucide-bell',
-  to: '/budget/alertes',
-  onSelect: () => {
-    open.value = false
-  }
+  defaultOpen: true,
+  active: route.path === '/budget' || route.path.startsWith('/budget/'),
+  children: budgetChildren.map(c => ({ ...c, onSelect: closeOpen }))
 }, {
   label: 'Configuration',
   icon: 'i-lucide-settings',
   to: '/configuration',
-  onSelect: () => {
-    open.value = false
-  }
-}] satisfies NavigationMenuItem[]
+  onSelect: closeOpen
+}])
 
 const searchTerm = ref('')
 
@@ -92,11 +65,22 @@ interface SearchGroup {
   items: { label: string, suffix?: string, icon?: string, to?: string, onSelect?: () => void }[]
 }
 
+const searchableLinks = computed(() => [
+  { label: 'Accueil', icon: 'i-lucide-house', to: '/', onSelect: closeOpen },
+  ...budgetChildren.map(c => ({
+    label: `Budget · ${c.label}`,
+    icon: c.icon,
+    to: c.to,
+    onSelect: closeOpen
+  })),
+  { label: 'Configuration', icon: 'i-lucide-settings', to: '/configuration', onSelect: closeOpen }
+])
+
 const groups = computed<SearchGroup[]>(() => {
   const g: SearchGroup[] = [{
     id: 'links',
     label: 'Aller à',
-    items: links
+    items: searchableLinks.value
   }]
 
   if (searchTerm.value.length >= 2) {
