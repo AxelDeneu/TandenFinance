@@ -1,6 +1,5 @@
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
-
   modules: [
     '@nuxt/eslint',
     '@nuxt/ui',
@@ -11,6 +10,7 @@ export default defineNuxtConfig({
     '@nuxthub/core',
     '@nuxtjs/google-fonts'
   ],
+
   devtools: {
     enabled: true
   },
@@ -26,6 +26,10 @@ export default defineNuxtConfig({
     mcpToken: ''
   },
 
+  ignore: [
+    '.claude/**/*'
+  ],
+
   routeRules: {
     '/api/**': {
       headers: {
@@ -37,6 +41,17 @@ export default defineNuxtConfig({
   },
 
   compatibilityDate: '2024-07-11',
+
+  // Use @parcel/watcher (native, FSEvents-backed) instead of chokidar.
+  // Nuxt 4's default with srcDir=app/ is 'chokidar', which on macOS uses
+  // fs.watch() and opens one FD per watched directory. With pnpm symlinks,
+  // node_modules expands to ~30k dirs and exhausts the per-process FD cap
+  // (EMFILE). @parcel/watcher uses one global FSEvents handle for the whole
+  // tree and ignores node_modules cleanly — proven on this machine since the
+  // native binding `@parcel/watcher-darwin-arm64` is installed and loads.
+  experimental: {
+    watcher: 'parcel'
+  },
 
   hub: {
     db: {
@@ -58,5 +73,5 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
-  }
+  },
 })
