@@ -9,7 +9,7 @@ export const budgetEntrySchema = z.object({
   category: z.string().min(1, 'Catégorie requise'),
   dayOfMonth: z.coerce.number().int().min(1, 'Minimum 1').max(31, 'Maximum 31'),
   active: z.boolean().default(true),
-  notes: z.string().nullable().optional()
+  notes: z.string().optional()
 })
 
 export type BudgetEntrySchema = z.output<typeof budgetEntrySchema>
