@@ -47,7 +47,7 @@ describe('budgetEntrySchema', () => {
       category: 'Logement',
       dayOfMonth: 1,
       active: true,
-      notes: null
+      notes: undefined
     })
     expect(result.success).toBe(true)
   })
