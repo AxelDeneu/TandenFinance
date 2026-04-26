@@ -40,8 +40,6 @@ export default defineNuxtConfig({
     }
   },
 
-  compatibilityDate: '2024-07-11',
-
   // Use @parcel/watcher (native, FSEvents-backed) instead of chokidar.
   // Nuxt 4's default with srcDir=app/ is 'chokidar', which on macOS uses
   // fs.watch() and opens one FD per watched directory. With pnpm symlinks,
@@ -52,6 +50,8 @@ export default defineNuxtConfig({
   experimental: {
     watcher: 'parcel'
   },
+
+  compatibilityDate: '2024-07-11',
 
   hub: {
     db: {
@@ -73,5 +73,5 @@ export default defineNuxtConfig({
         braceStyle: '1tbs'
       }
     }
-  },
+  }
 })
