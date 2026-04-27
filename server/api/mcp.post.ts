@@ -105,12 +105,6 @@ const tools: ToolDef[] = [
       }
     },
     handler: args => $fetch('/api/budget/forecast', { query: { months: args.months ?? 6, year: args.year, month: args.month } })
-  },
-  {
-    name: 'list_budget_rules',
-    description: 'Liste les règles d\'alerte budgétaire configurées (dépassement d\'enveloppe, solde faible, seuil par catégorie).',
-    inputSchema: { type: 'object', properties: {} },
-    handler: () => $fetch('/api/budget/rules')
   }
 ]
 

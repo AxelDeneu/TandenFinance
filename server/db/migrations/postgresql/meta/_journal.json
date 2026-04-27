@@ -36,6 +36,13 @@
       "when": 1777220173778,
       "tag": "0004_flat_post",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1777320646405,
+      "tag": "0005_furry_overlord",
+      "breakpoints": true
     }
   ]
 }

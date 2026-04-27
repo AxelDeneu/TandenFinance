@@ -6,30 +6,6 @@ export interface Stat {
   formatter?: (value: number) => string
 }
 
-export type BudgetRuleType = 'envelope_exceeded' | 'remaining_low' | 'category_threshold'
-
-export interface BudgetRule {
-  id: number
-  label: string
-  type: BudgetRuleType
-  config: string
-  active: boolean
-  createdAt: string
-  updatedAt: string
-}
-
-export interface Notification {
-  id: number
-  ruleId: number | null
-  title: string
-  body: string
-  icon: string | null
-  color: string | null
-  read: boolean
-  actionUrl: string | null
-  createdAt: string
-}
-
 export interface ImportBatch {
   id: number
   filename: string

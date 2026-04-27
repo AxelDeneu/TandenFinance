@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest'
-import { createEntrySchema, updateEntrySchema, createEnvelopeSchema, updateEnvelopeSchema, createTransactionSchema, updateTransactionSchema, createRuleSchema, updateRuleSchema, confirmImportSchema } from '../../server/utils/budget-validation'
+import { createEntrySchema, updateEntrySchema, createEnvelopeSchema, updateEnvelopeSchema, createTransactionSchema, updateTransactionSchema, confirmImportSchema } from '../../server/utils/budget-validation'
 
 describe('createEntrySchema', () => {
   it('accepts valid entry data', () => {
@@ -484,101 +484,6 @@ describe('updateTransactionSchema', () => {
     const result = updateTransactionSchema.safeParse({
       date: 'invalid'
     })
-    expect(result.success).toBe(false)
-  })
-})
-
-describe('createRuleSchema', () => {
-  it('accepts valid remaining_low rule', () => {
-    const result = createRuleSchema.safeParse({
-      label: 'Alerte RAV',
-      type: 'remaining_low',
-      config: '{"threshold":500}'
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it('accepts valid envelope_exceeded rule', () => {
-    const result = createRuleSchema.safeParse({
-      label: 'Enveloppe courses',
-      type: 'envelope_exceeded',
-      config: '{"envelopeId":5}'
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it('accepts valid category_threshold rule', () => {
-    const result = createRuleSchema.safeParse({
-      label: 'Seuil restaurant',
-      type: 'category_threshold',
-      config: '{"category":"Restaurant","threshold":200}'
-    })
-    expect(result.success).toBe(true)
-  })
-
-  it('applies default active value', () => {
-    const result = createRuleSchema.safeParse({
-      label: 'Test',
-      type: 'remaining_low',
-      config: '{"threshold":0}'
-    })
-    expect(result.success).toBe(true)
-    if (result.success) {
-      expect(result.data.active).toBe(true)
-    }
-  })
-
-  it('rejects label shorter than 2 chars', () => {
-    const result = createRuleSchema.safeParse({
-      label: 'A',
-      type: 'remaining_low',
-      config: '{}'
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects invalid type', () => {
-    const result = createRuleSchema.safeParse({
-      label: 'Test',
-      type: 'invalid_type',
-      config: '{}'
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects config shorter than 2 chars', () => {
-    const result = createRuleSchema.safeParse({
-      label: 'Test',
-      type: 'remaining_low',
-      config: '{'
-    })
-    expect(result.success).toBe(false)
-  })
-
-  it('rejects missing required fields', () => {
-    const result = createRuleSchema.safeParse({})
-    expect(result.success).toBe(false)
-  })
-})
-
-describe('updateRuleSchema', () => {
-  it('accepts partial data with only label', () => {
-    const result = updateRuleSchema.safeParse({ label: 'Updated' })
-    expect(result.success).toBe(true)
-  })
-
-  it('accepts empty object', () => {
-    const result = updateRuleSchema.safeParse({})
-    expect(result.success).toBe(true)
-  })
-
-  it('still validates type when provided', () => {
-    const result = updateRuleSchema.safeParse({ type: 'invalid' })
-    expect(result.success).toBe(false)
-  })
-
-  it('still validates label length when provided', () => {
-    const result = updateRuleSchema.safeParse({ label: 'A' })
     expect(result.success).toBe(false)
   })
 })
