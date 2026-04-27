@@ -58,6 +58,28 @@ const amountStr = ref('')
 const showNotes = ref(false)
 const recurringAuto = ref(true)
 const dateMode = ref<'yesterday' | 'today' | 'custom'>('today')
+const recurringSearch = ref('')
+
+function sanitizeAmount(raw: string): string {
+  // keep only digits and one comma, max 2 decimals
+  let cleaned = raw.replace(/\./g, ',').replace(/[^\d,]/g, '')
+  const firstComma = cleaned.indexOf(',')
+  if (firstComma !== -1) {
+    cleaned = cleaned.slice(0, firstComma + 1) + cleaned.slice(firstComma + 1).replace(/,/g, '')
+  }
+  const parts = cleaned.split(',')
+  if (parts.length === 2 && (parts[1]?.length ?? 0) > 2) {
+    cleaned = parts[0] + ',' + parts[1]!.slice(0, 2)
+  }
+  return cleaned
+}
+
+function onAmountInput(e: Event) {
+  const el = e.target as HTMLInputElement
+  const next = sanitizeAmount(el.value)
+  if (next !== el.value) el.value = next
+  amountStr.value = next
+}
 
 watch(() => props.transaction, (tx) => {
   if (tx) {
@@ -92,6 +114,19 @@ watch(() => state.label, (label) => {
 
 const numAmount = computed(() => parseFloat(amountStr.value.replace(',', '.')) || 0)
 const valid = computed(() => numAmount.value > 0 && (state.label?.trim().length ?? 0) > 0)
+
+const visibleRecurringOptions = computed<RecurringEntryOption[]>(() => {
+  const q = recurringSearch.value.trim().toLowerCase()
+  if (!q) return filteredRecurringOptions.value
+  return filteredRecurringOptions.value.filter(o =>
+    o.label.toLowerCase().includes(q)
+    || (o.categoryName?.toLowerCase().includes(q) ?? false)
+  )
+})
+
+watch(() => state.type, () => {
+  recurringSearch.value = ''
+})
 
 const currentOption = computed<RecurringEntryOption | null>(() => {
   return filteredRecurringOptions.value.find(o => o.value === state.recurringEntryId) ?? null
@@ -152,12 +187,7 @@ function pressKey(k: string) {
     amountStr.value = amountStr.value === '' ? '0,' : amountStr.value + ','
     return
   }
-  let next = amountStr.value + k
-  const parts = next.split(',')
-  if (parts.length === 2 && (parts[1]?.length ?? 0) > 2) {
-    next = parts[0] + ',' + parts[1]!.slice(0, 2)
-  }
-  amountStr.value = next
+  amountStr.value = sanitizeAmount(amountStr.value + k)
 }
 
 function pickRecent(label: string) {
@@ -236,274 +266,299 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
     <slot />
 
     <template #content>
-      <div class="tf-tx-modal" @click.stop>
-        <!-- ============ LEFT: keypad + amount ============ -->
-        <div class="tf-tx-left">
-          <div class="tf-tx-type-switch">
-            <button
-              type="button"
-              :class="state.type === 'expense' ? 'active' : ''"
-              @click="setType('expense')"
+      <!-- ============ LEFT: keypad + amount ============ -->
+      <div class="tf-tx-left">
+        <div class="tf-tx-type-switch">
+          <button
+            type="button"
+            :class="state.type === 'expense' ? 'active' : ''"
+            @click="setType('expense')"
+          >
+            <UIcon name="i-lucide-trending-down" class="size-3.5" />
+            Dépense
+          </button>
+          <button
+            type="button"
+            :class="state.type === 'income' ? 'active income' : ''"
+            @click="setType('income')"
+          >
+            <UIcon name="i-lucide-trending-up" class="size-3.5" />
+            Revenu
+          </button>
+        </div>
+
+        <label class="tf-tx-amount-display">
+          <div class="tf-tx-sign">
+            {{ state.type === 'income' ? '+' : '−' }}
+          </div>
+          <input
+            :value="amountStr"
+            type="text"
+            inputmode="decimal"
+            pattern="[0-9,]*"
+            class="tf-tx-amount-num"
+            :class="{ 'is-empty': !amountStr }"
+            placeholder="0,00"
+            aria-label="Montant"
+            @input="onAmountInput"
+          >
+          <div class="tf-tx-currency">
+            €
+          </div>
+        </label>
+
+        <div class="tf-tx-quick-amounts">
+          <button
+            v-for="q in QUICK_AMOUNTS"
+            :key="q"
+            type="button"
+            @click="setQuickAmount(q)"
+          >
+            {{ q }} €
+          </button>
+        </div>
+
+        <div class="tf-keypad">
+          <button
+            v-for="k in ['1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '0', '⌫']"
+            :key="k"
+            type="button"
+            :class="k === '⌫' ? 'back' : ''"
+            @click="pressKey(k)"
+          >
+            <UIcon v-if="k === '⌫'" name="i-lucide-delete" class="size-4" />
+            <template v-else>
+              {{ k }}
+            </template>
+          </button>
+        </div>
+      </div>
+
+      <!-- ============ RIGHT: details ============ -->
+      <div class="tf-tx-right">
+        <button class="tf-tx-close" type="button" @click="open = false">
+          <UIcon name="i-lucide-x" class="size-4" />
+        </button>
+
+        <!-- Label -->
+        <div class="tf-tx-section">
+          <div class="tf-tx-label">
+            <span>Libellé</span>
+            <span v-if="detectedCategory && recurringAuto" class="tf-tx-detected">
+              <span class="dot" :style="{ background: detectedCategory.color }" />
+              détecté : {{ detectedCategory.name }}
+            </span>
+          </div>
+          <div class="tf-tx-input-wrap">
+            <input
+              v-model="state.label"
+              class="tf-tx-label-input"
+              :placeholder="state.type === 'income' ? 'ex. Salaire avril, Remboursement…' : 'ex. Carrefour, Total essence…'"
+              autofocus
             >
-              <UIcon name="i-lucide-trending-down" class="size-3.5" />
-              Dépense
-            </button>
             <button
+              v-if="state.label"
+              class="tf-tx-clear"
               type="button"
-              :class="state.type === 'income' ? 'active income' : ''"
-              @click="setType('income')"
+              @click="state.label = ''"
             >
-              <UIcon name="i-lucide-trending-up" class="size-3.5" />
-              Revenu
+              <UIcon name="i-lucide-x" class="size-3" />
             </button>
           </div>
-
-          <div class="tf-tx-amount-display">
-            <div class="tf-tx-sign">
-              {{ state.type === 'income' ? '+' : '−' }}
+          <div v-if="!state.label && state.type === 'expense' && recents.length > 0" class="tf-tx-recent">
+            <div class="tf-tx-recent-head">
+              <UIcon name="i-lucide-history" class="size-2.5" />
+              <span>Récents</span>
             </div>
-            <div class="tf-tx-amount-num">
-              <span v-if="amountStr">{{ amountStr }}</span>
-              <span v-else class="ph">0,00</span>
+            <div class="tf-tx-recent-list">
+              <button
+                v-for="r in recents"
+                :key="r.label"
+                type="button"
+                class="tf-tx-recent-chip"
+                @click="pickRecent(r.label)"
+              >
+                <span class="ico" :style="{ color: r.style.color, background: `${r.style.color}14`, borderColor: `${r.style.color}33` }">
+                  <UIcon :name="r.style.icon" class="size-3" />
+                </span>
+                <span class="lbl">{{ r.label }}</span>
+              </button>
             </div>
-            <div class="tf-currency">
-              €
-            </div>
-          </div>
-
-          <div class="tf-tx-quick-amounts">
-            <button
-              v-for="q in QUICK_AMOUNTS"
-              :key="q"
-              type="button"
-              @click="setQuickAmount(q)"
-            >
-              {{ q }} €
-            </button>
-          </div>
-
-          <div class="tf-keypad">
-            <button
-              v-for="k in ['1', '2', '3', '4', '5', '6', '7', '8', '9', ',', '0', '⌫']"
-              :key="k"
-              type="button"
-              :class="k === '⌫' ? 'back' : ''"
-              @click="pressKey(k)"
-            >
-              <UIcon v-if="k === '⌫'" name="i-lucide-delete" class="size-4" />
-              <template v-else>
-                {{ k }}
-              </template>
-            </button>
           </div>
         </div>
 
-        <!-- ============ RIGHT: details ============ -->
-        <div class="tf-tx-right">
-          <button class="tf-tx-close" type="button" @click="open = false">
-            <UIcon name="i-lucide-x" class="size-4" />
-          </button>
-
-          <!-- Label -->
-          <div class="tf-tx-section">
-            <div class="tf-tx-label">
-              <span>Libellé</span>
-              <span v-if="detectedCategory && recurringAuto" class="tf-tx-detected">
-                <span class="dot" :style="{ background: detectedCategory.color }" />
-                détecté : {{ detectedCategory.name }}
+        <!-- Recurring entry selector -->
+        <div v-if="filteredRecurringOptions.length > 0" class="tf-tx-section">
+          <div class="tf-tx-label">
+            <span>Entrée récurrente</span>
+            <button
+              v-if="!recurringAuto"
+              type="button"
+              class="tf-tx-mini-link"
+              @click="recurringAuto = true; state.recurringEntryId = null"
+            >
+              <UIcon name="i-lucide-refresh-cw" class="size-2.5" />
+              auto
+            </button>
+          </div>
+          <div class="tf-tx-recurring-search">
+            <UIcon name="i-lucide-search" class="size-3.5" />
+            <input
+              v-model="recurringSearch"
+              type="text"
+              :placeholder="`Rechercher parmi ${filteredRecurringOptions.length} entrée${filteredRecurringOptions.length > 1 ? 's' : ''}…`"
+            >
+            <button
+              v-if="recurringSearch"
+              type="button"
+              class="tf-tx-recurring-search-clear"
+              aria-label="Effacer la recherche"
+              @click="recurringSearch = ''"
+            >
+              <UIcon name="i-lucide-x" class="size-3" />
+            </button>
+          </div>
+          <div v-if="visibleRecurringOptions.length > 0" class="tf-tx-cat-grid">
+            <button
+              v-for="o in visibleRecurringOptions"
+              :key="o.value"
+              type="button"
+              class="tf-tx-cat"
+              :class="state.recurringEntryId === o.value ? 'active' : ''"
+              :style="state.recurringEntryId === o.value && o.categoryId ? {
+                color: categoriesById.get(o.categoryId)?.color,
+                borderColor: `${categoriesById.get(o.categoryId)?.color}60`,
+                background: `${categoriesById.get(o.categoryId)?.color}14`
+              } : {}"
+              :title="o.categoryName ? `${o.label} — ${o.categoryName}` : o.label"
+              @click="pickRecurring(o.value)"
+            >
+              <span class="cat-ico" :style="state.recurringEntryId === o.value ? {} : { color: o.categoryId ? categoriesById.get(o.categoryId)?.color : '#6B7489' }">
+                <UIcon :name="o.categoryId ? (categoriesById.get(o.categoryId)?.icon ?? 'i-lucide-tag') : 'i-lucide-tag'" class="size-3.5" />
               </span>
-            </div>
-            <div class="tf-tx-input-wrap">
-              <input
-                v-model="state.label"
-                class="tf-tx-label-input"
-                :placeholder="state.type === 'income' ? 'ex. Salaire avril, Remboursement…' : 'ex. Carrefour, Total essence…'"
-                autofocus
-              >
+              <span>{{ o.label }}</span>
+            </button>
+          </div>
+          <div v-else class="tf-tx-empty">
+            Aucune entrée ne correspond à « {{ recurringSearch }} »
+          </div>
+        </div>
+
+        <!-- Date -->
+        <div class="tf-tx-section">
+          <div class="tf-tx-label">
+            <span>Date</span>
+          </div>
+          <div class="flex items-center gap-3">
+            <div class="tf-tx-segment">
               <button
-                v-if="state.label"
-                class="tf-tx-clear"
                 type="button"
-                @click="state.label = ''"
+                :class="dateMode === 'yesterday' ? 'active' : ''"
+                @click="setDateMode('yesterday')"
               >
-                <UIcon name="i-lucide-x" class="size-3" />
+                Hier
+              </button>
+              <button
+                type="button"
+                :class="dateMode === 'today' ? 'active' : ''"
+                @click="setDateMode('today')"
+              >
+                Aujourd'hui
+              </button>
+              <button
+                type="button"
+                :class="dateMode === 'custom' ? 'active' : ''"
+                @click="dateMode = 'custom'"
+              >
+                <UIcon name="i-lucide-calendar" class="size-3" />
+                Autre
               </button>
             </div>
-            <div v-if="!state.label && state.type === 'expense' && recents.length > 0" class="tf-tx-recent">
-              <div class="tf-tx-recent-head">
-                <UIcon name="i-lucide-history" class="size-2.5" />
-                <span>Récents</span>
-              </div>
-              <div class="tf-tx-recent-list">
-                <button
-                  v-for="r in recents"
-                  :key="r.label"
-                  type="button"
-                  class="tf-tx-recent-chip"
-                  @click="pickRecent(r.label)"
-                >
-                  <span class="ico" :style="{ color: r.style.color, background: `${r.style.color}14`, borderColor: `${r.style.color}33` }">
-                    <UIcon :name="r.style.icon" class="size-3" />
-                  </span>
-                  <span class="lbl">{{ r.label }}</span>
-                </button>
-              </div>
-            </div>
-          </div>
-
-          <!-- Recurring entry selector -->
-          <div v-if="filteredRecurringOptions.length > 0" class="tf-tx-section">
-            <div class="tf-tx-label">
-              <span>Entrée récurrente</span>
-              <button
-                v-if="!recurringAuto"
-                type="button"
-                class="tf-tx-mini-link"
-                @click="recurringAuto = true; state.recurringEntryId = null"
-              >
-                <UIcon name="i-lucide-refresh-cw" class="size-2.5" />
-                auto
-              </button>
-            </div>
-            <div class="tf-tx-cat-grid">
-              <button
-                v-for="o in filteredRecurringOptions.slice(0, 12)"
-                :key="o.value"
-                type="button"
-                class="tf-tx-cat"
-                :class="state.recurringEntryId === o.value ? 'active' : ''"
-                :style="state.recurringEntryId === o.value && o.categoryId ? {
-                  color: categoriesById.get(o.categoryId)?.color,
-                  borderColor: `${categoriesById.get(o.categoryId)?.color}60`,
-                  background: `${categoriesById.get(o.categoryId)?.color}14`
-                } : {}"
-                :title="o.categoryName ? `${o.label} — ${o.categoryName}` : o.label"
-                @click="pickRecurring(o.value)"
-              >
-                <span class="cat-ico" :style="state.recurringEntryId === o.value ? {} : { color: o.categoryId ? categoriesById.get(o.categoryId)?.color : '#6B7489' }">
-                  <UIcon :name="o.categoryId ? (categoriesById.get(o.categoryId)?.icon ?? 'i-lucide-tag') : 'i-lucide-tag'" class="size-3.5" />
-                </span>
-                <span>{{ o.label }}</span>
-              </button>
-            </div>
-          </div>
-
-          <!-- Date -->
-          <div class="tf-tx-section">
-            <div class="tf-tx-label">
-              <span>Date</span>
-            </div>
-            <div class="flex items-center gap-3">
-              <div class="tf-tx-segment">
-                <button
-                  type="button"
-                  :class="dateMode === 'yesterday' ? 'active' : ''"
-                  @click="setDateMode('yesterday')"
-                >
-                  Hier
-                </button>
-                <button
-                  type="button"
-                  :class="dateMode === 'today' ? 'active' : ''"
-                  @click="setDateMode('today')"
-                >
-                  Aujourd'hui
-                </button>
-                <button
-                  type="button"
-                  :class="dateMode === 'custom' ? 'active' : ''"
-                  @click="dateMode = 'custom'"
-                >
-                  <UIcon name="i-lucide-calendar" class="size-3" />
-                  Autre
-                </button>
-              </div>
-              <input
-                v-if="dateMode === 'custom'"
-                type="date"
-                :value="state.date"
-                class="tf-tx-label-input"
-                style="padding: 8px 10px; font-size: 13px; max-width: 160px;"
-                @input="(e) => commitCustomDate((e.target as HTMLInputElement).value)"
-              >
-            </div>
-          </div>
-
-          <!-- Notes -->
-          <div class="tf-tx-section">
-            <button
-              v-if="!showNotes"
-              type="button"
-              class="tf-tx-add-notes"
-              @click="showNotes = true"
+            <input
+              v-if="dateMode === 'custom'"
+              type="date"
+              :value="state.date"
+              class="tf-tx-label-input"
+              style="padding: 8px 10px; font-size: 13px; max-width: 160px;"
+              @input="(e) => commitCustomDate((e.target as HTMLInputElement).value)"
             >
-              <UIcon name="i-lucide-plus" class="size-3" />
-              Ajouter une note
-            </button>
-            <template v-else>
-              <div class="tf-tx-label">
-                <span>Note</span>
-              </div>
-              <textarea
-                v-model="state.notes"
-                class="tf-tx-notes"
-                rows="2"
-                placeholder="Détails, contexte…"
-              />
-            </template>
           </div>
+        </div>
 
-          <!-- Preview -->
-          <div class="tf-tx-preview">
-            <div class="tf-tx-preview-head">
-              Aperçu
+        <!-- Notes -->
+        <div class="tf-tx-section">
+          <button
+            v-if="!showNotes"
+            type="button"
+            class="tf-tx-add-notes"
+            @click="showNotes = true"
+          >
+            <UIcon name="i-lucide-plus" class="size-3" />
+            Ajouter une note
+          </button>
+          <template v-else>
+            <div class="tf-tx-label">
+              <span>Note</span>
             </div>
-            <div class="tf-tx-preview-row">
-              <div
-                class="tf-tx-preview-ico"
-                :style="{ color: previewColor, background: `${previewColor}14`, borderColor: `${previewColor}33` }"
-              >
-                <UIcon :name="previewIcon" class="size-3.5" />
-              </div>
-              <div class="tf-tx-preview-body">
-                <div class="tf-tx-preview-label">
-                  {{ previewLabel }}
-                </div>
-                <div class="tf-tx-preview-meta">
-                  {{ previewMeta }}
-                </div>
-              </div>
-              <div class="tf-tx-preview-amt" :class="state.type === 'income' ? 'up' : 'down'">
-                {{ state.type === 'income' ? '+' : '−' }}{{ numAmount.toFixed(2).replace('.', ',') }} €
-              </div>
-            </div>
+            <textarea
+              v-model="state.notes"
+              class="tf-tx-notes"
+              rows="2"
+              placeholder="Détails, contexte…"
+            />
+          </template>
+        </div>
+
+        <!-- Preview -->
+        <div class="tf-tx-preview">
+          <div class="tf-tx-preview-head">
+            Aperçu
           </div>
-
-          <!-- Footer -->
-          <div class="tf-tx-foot">
-            <span class="tf-tx-foot-hint">
-              <span class="kb">⌘</span>
-              <span class="kb">↵</span>
-              pour enregistrer
-              <span style="margin: 0 8px; opacity: 0.4;">·</span>
-              <span class="kb">esc</span>
-              annuler
-            </span>
-            <div style="flex: 1;" />
-            <button class="tf-tx-btn ghost" type="button" @click="open = false">
-              Annuler
-            </button>
-            <button
-              class="tf-tx-btn"
-              :class="state.type === 'income' ? 'income' : 'primary'"
-              :disabled="!valid"
-              type="button"
-              @click="save"
+          <div class="tf-tx-preview-row">
+            <div
+              class="tf-tx-preview-ico"
+              :style="{ color: previewColor, background: `${previewColor}14`, borderColor: `${previewColor}33` }"
             >
-              <UIcon name="i-lucide-check" class="size-4" />
-              {{ valid ? `Enregistrer ${state.type === 'income' ? '+' : '−'}${numAmount.toFixed(2).replace('.', ',')} €` : 'Enregistrer' }}
-            </button>
+              <UIcon :name="previewIcon" class="size-3.5" />
+            </div>
+            <div class="tf-tx-preview-body">
+              <div class="tf-tx-preview-label">
+                {{ previewLabel }}
+              </div>
+              <div class="tf-tx-preview-meta">
+                {{ previewMeta }}
+              </div>
+            </div>
+            <div class="tf-tx-preview-amt" :class="state.type === 'income' ? 'up' : 'down'">
+              {{ state.type === 'income' ? '+' : '−' }}{{ numAmount.toFixed(2).replace('.', ',') }} €
+            </div>
           </div>
+        </div>
+
+        <!-- Footer -->
+        <div class="tf-tx-foot">
+          <span class="tf-tx-foot-hint">
+            <span class="kb">⌘</span>
+            <span class="kb">↵</span>
+            pour enregistrer
+            <span style="margin: 0 8px; opacity: 0.4;">·</span>
+            <span class="kb">esc</span>
+            annuler
+          </span>
+          <div style="flex: 1;" />
+          <button class="tf-tx-btn ghost" type="button" @click="open = false">
+            Annuler
+          </button>
+          <button
+            class="tf-tx-btn"
+            :class="state.type === 'income' ? 'income' : 'primary'"
+            :disabled="!valid"
+            type="button"
+            @click="save"
+          >
+            <UIcon name="i-lucide-check" class="size-4" />
+            {{ valid ? `Enregistrer ${state.type === 'income' ? '+' : '−'}${numAmount.toFixed(2).replace('.', ',')} €` : 'Enregistrer' }}
+          </button>
         </div>
       </div>
     </template>
