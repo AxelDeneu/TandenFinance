@@ -1,38 +1,22 @@
 <script setup lang="ts">
-import type { NavigationMenuItem } from '@nuxt/ui'
+const route = useRoute()
 
-const links = [[{
-  label: 'Configuration',
-  icon: 'i-lucide-settings',
-  to: '/budget',
-  exact: true
-}, {
-  label: 'Comptabilité',
-  icon: 'i-lucide-receipt',
-  to: '/budget/comptabilite'
-}, {
-  label: 'Prévisionnel',
-  icon: 'i-lucide-calendar-range',
-  to: '/budget/previsionnel'
-}, {
-  label: 'Historique',
-  icon: 'i-lucide-history',
-  to: '/budget/historique'
-}, {
-  label: 'Analyse',
-  icon: 'i-lucide-bar-chart-3',
-  to: '/budget/analyse'
-}, {
-  label: 'Alertes',
-  icon: 'i-lucide-bell',
-  to: '/budget/alertes'
-}]] satisfies NavigationMenuItem[][]
+const titles: Record<string, string> = {
+  '/budget': 'Budget mensuel',
+  '/budget/comptabilite': 'Comptabilité',
+  '/budget/previsionnel': 'Prévisionnel',
+  '/budget/historique': 'Historique',
+  '/budget/analyse': 'Analyse',
+  '/budget/alertes': 'Alertes'
+}
+
+const title = computed(() => titles[route.path] ?? 'Budget')
 </script>
 
 <template>
   <UDashboardPanel id="budget">
     <template #header>
-      <UDashboardNavbar title="Budget">
+      <UDashboardNavbar :title="title">
         <template #leading>
           <UDashboardSidebarCollapse />
         </template>
@@ -41,10 +25,6 @@ const links = [[{
           <NavbarActions />
         </template>
       </UDashboardNavbar>
-
-      <UDashboardToolbar>
-        <UNavigationMenu :items="links" highlight class="-mx-1 flex-1" />
-      </UDashboardToolbar>
     </template>
 
     <template #body>

@@ -6,7 +6,7 @@ describe('createEntrySchema', () => {
     const result = createEntrySchema.safeParse({
       label: 'Loyer',
       amount: 1200,
-      category: 'Logement',
+      categoryId: 1,
       dayOfMonth: 5
     })
     expect(result.success).toBe(true)
@@ -16,7 +16,7 @@ describe('createEntrySchema', () => {
     const result = createEntrySchema.safeParse({
       label: 'Loyer',
       amount: 1200,
-      category: 'Logement',
+      categoryId: 1,
       dayOfMonth: 5
     })
     expect(result.success).toBe(true)
@@ -108,7 +108,7 @@ describe('createEntrySchema', () => {
     const result1 = createEntrySchema.safeParse({
       label: 'Test',
       amount: 100,
-      category: 'Logement',
+      categoryId: 1,
       dayOfMonth: 1
     })
     expect(result1.success).toBe(true)
@@ -116,7 +116,7 @@ describe('createEntrySchema', () => {
     const result31 = createEntrySchema.safeParse({
       label: 'Test',
       amount: 100,
-      category: 'Logement',
+      categoryId: 1,
       dayOfMonth: 31
     })
     expect(result31.success).toBe(true)
@@ -146,7 +146,7 @@ describe('createEntrySchema', () => {
     const result = createEntrySchema.safeParse({
       label: 'Test',
       amount: 100,
-      category: 'Logement',
+      categoryId: 1,
       dayOfMonth: 15,
       active: false,
       notes: 'Some note'
@@ -162,7 +162,7 @@ describe('createEntrySchema', () => {
     const result = createEntrySchema.safeParse({
       label: 'Test',
       amount: 100,
-      category: 'Logement',
+      categoryId: 1,
       dayOfMonth: 15,
       notes: null
     })
@@ -247,7 +247,8 @@ describe('createEnvelopeSchema', () => {
   it('accepts valid envelope data', () => {
     const result = createEnvelopeSchema.safeParse({
       label: 'Courses',
-      amount: 500
+      amount: 500,
+      categoryId: 1
     })
     expect(result.success).toBe(true)
   })
@@ -255,7 +256,8 @@ describe('createEnvelopeSchema', () => {
   it('applies default value for active field', () => {
     const result = createEnvelopeSchema.safeParse({
       label: 'Courses',
-      amount: 500
+      amount: 500,
+      categoryId: 1
     })
     expect(result.success).toBe(true)
     if (result.success) {
@@ -279,10 +281,11 @@ describe('createEnvelopeSchema', () => {
     expect(result.success).toBe(false)
   })
 
-  it('does not require category or dayOfMonth', () => {
+  it('does not require dayOfMonth', () => {
     const result = createEnvelopeSchema.safeParse({
       label: 'Courses',
       amount: 500,
+      categoryId: 1,
       active: true,
       notes: null
     })
@@ -293,6 +296,7 @@ describe('createEnvelopeSchema', () => {
     const result = createEnvelopeSchema.safeParse({
       label: 'Courses',
       amount: 500,
+      categoryId: 1,
       notes: 'Budget mensuel courses'
     })
     expect(result.success).toBe(true)

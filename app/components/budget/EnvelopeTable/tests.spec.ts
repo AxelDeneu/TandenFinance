@@ -128,6 +128,7 @@ describe('initBudgetEnvelopeTable', () => {
       label: 'Courses',
       amount: 500,
       category: null,
+      categoryId: null,
       dayOfMonth: null,
       active: true,
       notes: null,

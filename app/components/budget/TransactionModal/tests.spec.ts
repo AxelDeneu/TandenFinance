@@ -2,23 +2,30 @@ import { describe, it, expect, vi, beforeEach } from 'vitest'
 import { ref } from 'vue'
 import { stubNuxtAutoImports } from '../../../../test/helpers/nuxt-stubs'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { Transaction, RecurringEntry } from '~/types'
+import type { Transaction, RecurringEntry, Category } from '~/types'
 import type { TransactionSchema } from './init'
 
 const mockIncomes: RecurringEntry[] = [
-  { id: 1, type: 'income', label: 'Salaire', amount: 3000, category: 'Salaire', dayOfMonth: 25, active: true, notes: null, createdAt: '', updatedAt: '' }
+  { id: 1, type: 'income', label: 'Salaire', amount: 3000, category: 'Salaire', categoryId: 11, dayOfMonth: 25, active: true, notes: null, createdAt: '', updatedAt: '' }
 ]
 
 const mockExpenses: RecurringEntry[] = [
-  { id: 2, type: 'expense', label: 'Loyer', amount: 800, category: 'Logement', dayOfMonth: 5, active: true, notes: null, createdAt: '', updatedAt: '' }
+  { id: 2, type: 'expense', label: 'Loyer', amount: 800, category: 'Logement', categoryId: 12, dayOfMonth: 5, active: true, notes: null, createdAt: '', updatedAt: '' }
 ]
 
 const mockEnvelopes: RecurringEntry[] = [
-  { id: 3, type: 'envelope', label: 'Courses', amount: 500, category: null, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' }
+  { id: 3, type: 'envelope', label: 'Courses', amount: 500, category: null, categoryId: 13, dayOfMonth: null, active: true, notes: null, createdAt: '', updatedAt: '' }
+]
+
+const mockCategories: Category[] = [
+  { id: 11, name: 'Salaire', icon: 'i-lucide-briefcase', color: '#4ADE80', type: 'income', sortOrder: 10, createdAt: '', updatedAt: '' },
+  { id: 12, name: 'Logement', icon: 'i-lucide-home', color: '#60A5FA', type: 'expense', sortOrder: 20, createdAt: '', updatedAt: '' },
+  { id: 13, name: 'Courses', icon: 'i-lucide-shopping-cart', color: '#1FB578', type: 'expense', sortOrder: 30, createdAt: '', updatedAt: '' }
 ]
 
 stubNuxtAutoImports({
   useFetch: (url: string) => {
+    if (url.includes('categories')) return { data: ref(mockCategories), status: ref('idle') }
     if (url.includes('incomes')) return { data: ref(mockIncomes), status: ref('idle') }
     if (url.includes('expenses')) return { data: ref(mockExpenses), status: ref('idle') }
     if (url.includes('envelopes')) return { data: ref(mockEnvelopes), status: ref('idle') }
@@ -49,7 +56,9 @@ describe('initTransactionModal', () => {
     expect(result).toHaveProperty('state')
     expect(result).toHaveProperty('isEdit')
     expect(result).toHaveProperty('modalTitle')
-    expect(result).toHaveProperty('categoryOptions')
+    expect(result).toHaveProperty('recurringOptions')
+    expect(result).toHaveProperty('filteredRecurringOptions')
+    expect(result).toHaveProperty('categories')
     expect(result).toHaveProperty('onSubmit')
   })
 
@@ -112,46 +121,54 @@ describe('initTransactionModal', () => {
     expect(state.notes).toBe('Test note')
   })
 
-  it('categoryOptions includes entries from all types', () => {
+  it('recurringOptions includes entries from all types', () => {
     const ctx = createContext()
-    const { categoryOptions } = initTransactionModal(ctx)
+    const { recurringOptions } = initTransactionModal(ctx)
 
-    expect(categoryOptions.value).toHaveLength(3)
-    expect(categoryOptions.value.find(o => o.label === 'Salaire')).toBeDefined()
-    expect(categoryOptions.value.find(o => o.label === 'Loyer')).toBeDefined()
-    expect(categoryOptions.value.find(o => o.label === 'Courses')).toBeDefined()
+    expect(recurringOptions.value).toHaveLength(3)
+    expect(recurringOptions.value.find(o => o.label === 'Salaire')).toBeDefined()
+    expect(recurringOptions.value.find(o => o.label === 'Loyer')).toBeDefined()
+    expect(recurringOptions.value.find(o => o.label === 'Courses')).toBeDefined()
   })
 
-  it('categoryOptions groups entries correctly', () => {
+  it('recurringOptions groups entries correctly', () => {
     const ctx = createContext()
-    const { categoryOptions } = initTransactionModal(ctx)
+    const { recurringOptions } = initTransactionModal(ctx)
 
-    const salaire = categoryOptions.value.find(o => o.label === 'Salaire')
+    const salaire = recurringOptions.value.find(o => o.label === 'Salaire')
     expect(salaire?.group).toBe('Revenus')
     expect(salaire?.type).toBe('income')
 
-    const loyer = categoryOptions.value.find(o => o.label === 'Loyer')
+    const loyer = recurringOptions.value.find(o => o.label === 'Loyer')
     expect(loyer?.group).toBe('Dépenses')
     expect(loyer?.type).toBe('expense')
 
-    const courses = categoryOptions.value.find(o => o.label === 'Courses')
+    const courses = recurringOptions.value.find(o => o.label === 'Courses')
     expect(courses?.group).toBe('Enveloppes')
     expect(courses?.type).toBe('expense')
   })
 
-  it('auto-selects income type when income category is chosen', async () => {
+  it('recurringOptions resolves categoryName via FK', () => {
+    const ctx = createContext()
+    const { recurringOptions } = initTransactionModal(ctx)
+
+    const loyer = recurringOptions.value.find(o => o.label === 'Loyer')
+    expect(loyer?.categoryId).toBe(12)
+    expect(loyer?.categoryName).toBe('Logement')
+  })
+
+  it('auto-selects income type when income recurring entry is chosen', async () => {
     const ctx = createContext()
     const { state } = initTransactionModal(ctx)
 
     state.type = 'expense'
     state.recurringEntryId = 1 // Salaire (income)
 
-    // Wait for watcher
     await new Promise(resolve => setTimeout(resolve, 0))
     expect(state.type).toBe('income')
   })
 
-  it('auto-selects expense type when expense category is chosen', async () => {
+  it('auto-selects expense type when expense recurring entry is chosen', async () => {
     const ctx = createContext()
     const { state } = initTransactionModal(ctx)
 

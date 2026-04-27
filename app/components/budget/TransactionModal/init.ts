@@ -1,7 +1,7 @@
 import * as z from 'zod'
 import type { Ref } from 'vue'
 import type { FormSubmitEvent } from '@nuxt/ui'
-import type { Transaction, RecurringEntry } from '~/types'
+import type { Transaction, RecurringEntry, Category } from '~/types'
 
 export const transactionSchema = z.object({
   label: z.string().min(1, 'Libellé requis').max(255),
@@ -13,6 +13,15 @@ export const transactionSchema = z.object({
 })
 
 export type TransactionSchema = z.output<typeof transactionSchema>
+
+export interface RecurringEntryOption {
+  label: string
+  value: number
+  type: 'income' | 'expense'
+  group: string
+  categoryId: number | null
+  categoryName: string | null
+}
 
 interface TransactionModalContext {
   props: { transaction?: Transaction | null }
@@ -39,7 +48,6 @@ export function initTransactionModal(ctx: TransactionModalContext) {
 
   const modalTitle = computed(() => isEdit.value ? 'Modifier la transaction' : 'Nouvelle transaction')
 
-  // Fetch recurring entries for category selection
   const { data: incomeEntries } = useFetch<RecurringEntry[]>('/api/budget/incomes', {
     lazy: true,
     default: () => []
@@ -52,55 +60,64 @@ export function initTransactionModal(ctx: TransactionModalContext) {
     lazy: true,
     default: () => []
   })
+  const { data: categories } = useFetch<Category[]>('/api/budget/categories', {
+    lazy: true,
+    default: () => []
+  })
 
-  // Fetch existing labels for autocomplete
   const { data: existingLabels } = useFetch<string[]>('/api/budget/transactions/labels', {
     lazy: true,
     default: () => []
   })
 
-  const categoryOptions = computed(() => {
-    const options: { label: string, value: number | null, type: 'income' | 'expense', group: string }[] = []
+  const categoriesById = computed(() => {
+    const map = new Map<number, Category>()
+    for (const c of categories.value) map.set(c.id, c)
+    return map
+  })
 
-    for (const e of incomeEntries.value) {
-      options.push({ label: e.label, value: e.id, type: 'income', group: 'Revenus' })
+  const recurringOptions = computed<RecurringEntryOption[]>(() => {
+    const options: RecurringEntryOption[] = []
+    const enrich = (e: RecurringEntry, type: 'income' | 'expense', group: string): RecurringEntryOption => {
+      const cat = e.categoryId ? categoriesById.value.get(e.categoryId) ?? null : null
+      return {
+        label: e.label,
+        value: e.id,
+        type,
+        group,
+        categoryId: e.categoryId,
+        categoryName: cat?.name ?? e.category ?? null
+      }
     }
-    for (const e of expenseEntries.value) {
-      options.push({ label: e.label, value: e.id, type: 'expense', group: 'Dépenses' })
-    }
-    for (const e of envelopeEntries.value) {
-      options.push({ label: e.label, value: e.id, type: 'expense', group: 'Enveloppes' })
-    }
-
+    for (const e of incomeEntries.value) options.push(enrich(e, 'income', 'Revenus'))
+    for (const e of expenseEntries.value) options.push(enrich(e, 'expense', 'Dépenses'))
+    for (const e of envelopeEntries.value) options.push(enrich(e, 'expense', 'Enveloppes'))
     return options
   })
 
-  const filteredCategoryOptions = computed(() => {
+  const filteredRecurringOptions = computed<RecurringEntryOption[]>(() => {
     if (state.type === 'expense') {
-      return categoryOptions.value.filter(o => o.group === 'Dépenses' || o.group === 'Enveloppes')
+      return recurringOptions.value.filter(o => o.group === 'Dépenses' || o.group === 'Enveloppes')
     }
-    return categoryOptions.value.filter(o => o.group === 'Revenus' || o.group === 'Enveloppes')
+    return recurringOptions.value.filter(o => o.group === 'Revenus' || o.group === 'Enveloppes')
   })
 
-  // Auto-select type based on selected recurring entry (sync to run before type watcher)
   watch(() => state.recurringEntryId, (id) => {
     if (!id) return
-    const option = categoryOptions.value.find(o => o.value === id)
+    const option = recurringOptions.value.find(o => o.value === id)
     if (option) {
       state.type = option.type
     }
   }, { flush: 'sync' })
 
-  // Reset category when type changes and current selection is no longer valid
   watch(() => state.type, () => {
     if (!state.recurringEntryId) return
-    const stillValid = filteredCategoryOptions.value.some(o => o.value === state.recurringEntryId)
+    const stillValid = filteredRecurringOptions.value.some(o => o.value === state.recurringEntryId)
     if (!stillValid) {
       state.recurringEntryId = null
     }
   })
 
-  // Reset form when transaction changes
   watch(() => ctx.props.transaction, (transaction) => {
     if (transaction) {
       state.label = transaction.label
@@ -159,8 +176,10 @@ export function initTransactionModal(ctx: TransactionModalContext) {
     state,
     isEdit,
     modalTitle,
-    categoryOptions,
-    filteredCategoryOptions,
+    recurringOptions,
+    filteredRecurringOptions,
+    categories,
+    categoriesById,
     existingLabels,
     onSubmit
   }

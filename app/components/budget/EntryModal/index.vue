@@ -53,9 +53,9 @@ const { schema, state, isEdit, modalTitle, categories, onSubmit } = initBudgetEn
           />
         </UFormField>
 
-        <UFormField label="Catégorie" name="category">
+        <UFormField label="Catégorie" name="categoryId">
           <USelect
-            v-model="state.category"
+            v-model="state.categoryId"
             :items="categories"
             placeholder="Choisir une catégorie"
             class="w-full"

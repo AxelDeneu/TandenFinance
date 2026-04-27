@@ -43,6 +43,28 @@ export function stubNuxtAutoImports(overrides?: Record<string, unknown>) {
   vi.stubGlobal('useErrorToast', () => ({ showErrorToast: vi.fn() }))
   vi.stubGlobal('$fetch', vi.fn())
   vi.stubGlobal('useTemplateRef', () => ref(null))
+  vi.stubGlobal('useFetch', (_url: unknown, opts?: { default?: () => unknown }) => ({
+    data: ref(opts?.default ? opts.default() : null),
+    status: ref('idle'),
+    refresh: vi.fn(),
+    pending: ref(false),
+    error: ref(null)
+  }))
+  vi.stubGlobal('useAsyncData', (_key: unknown, _fn: unknown, opts?: { default?: () => unknown }) => ({
+    data: ref(opts?.default ? opts.default() : null),
+    status: ref('idle'),
+    refresh: vi.fn(),
+    pending: ref(false),
+    error: ref(null)
+  }))
+  vi.stubGlobal('getCategoryStyle', (cat: unknown) => {
+    if (!cat) return { color: '#6B7489', icon: 'i-lucide-tag' }
+    if (typeof cat === 'object') {
+      const c = cat as { color: string, icon: string }
+      return { color: c.color, icon: c.icon }
+    }
+    return { color: '#6B7489', icon: 'i-lucide-tag' }
+  })
 
   vi.stubGlobal('computeEffectiveTotal', (entries: { entry: { amount: number }, actuals: Record<string, number | null> }[], monthKey: string) => {
     let total = 0

@@ -3,7 +3,8 @@ import * as z from 'zod'
 export const createEntrySchema = z.object({
   label: z.string().min(2).max(255),
   amount: z.number().positive(),
-  category: z.string().min(1),
+  category: z.string().min(1).optional(),
+  categoryId: z.number().int().positive(),
   dayOfMonth: z.number().int().min(1).max(31),
   active: z.boolean().optional().default(true),
   notes: z.string().nullable().optional()
@@ -14,6 +15,7 @@ export const updateEntrySchema = createEntrySchema.partial()
 export const createEnvelopeSchema = z.object({
   label: z.string().min(2).max(255),
   amount: z.number().positive(),
+  categoryId: z.number().int().positive(),
   active: z.boolean().optional().default(true),
   notes: z.string().nullable().optional()
 })

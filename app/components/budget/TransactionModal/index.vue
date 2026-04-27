@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { Transaction } from '~/types'
+import type { Transaction, Category } from '~/types'
 import { initTransactionModal } from './init'
+import type { RecurringEntryOption } from './init'
 
 const props = defineProps<{
   transaction?: Transaction | null
@@ -16,28 +17,31 @@ const {
   state,
   isEdit,
   modalTitle,
-  filteredCategoryOptions,
+  filteredRecurringOptions,
+  categories,
+  categoriesById,
   existingLabels,
   onSubmit
 } = initTransactionModal({ props, emit, open })
 
-// ============== UI state (UX layer on top of state) ==============
+// ============== UI state ==============
 
 const QUICK_AMOUNTS = [5, 10, 20, 50, 100]
 
-// keyword → recurringEntry label hint (used to auto-detect category)
+// keyword → category name hint (used to auto-detect a category from the label)
 const CATEGORY_HINTS: Record<string, string[]> = {
   Courses: ['carrefour', 'monoprix', 'auchan', 'leclerc', 'intermarché', 'lidl', 'bio', 'marché', 'franprix', 'casino', 'picard'],
   Transport: ['total', 'essence', 'sncf', 'uber', 'metro', 'ratp', 'parking', 'peage', 'blablacar', 'garage', 'tesla'],
-  Loisirs: ['cinema', 'pathe', 'ugc', 'netflix', 'concert', 'musee', 'livre', 'fnac', 'steam', 'spotify'],
-  Salaire: ['salaire', 'paie', 'aden', 'climber', 'prime', 'bonus', 'remboursement'],
-  Énergie: ['edf', 'engie', 'gaz', 'electricite', 'eau', 'veolia'],
-  Restaurant: ['restaurant', 'resto', 'boulangerie', 'starbucks', 'mcdonald', 'burger', 'sushi', 'paul', 'pizza', 'brasserie', 'bar', 'cafe'],
+  Loisirs: ['cinema', 'pathe', 'ugc', 'concert', 'musee', 'livre', 'fnac', 'steam'],
+  Salaire: ['salaire', 'paie', 'aden', 'climber', 'prime', 'bonus'],
+  Énergie: ['edf', 'engie', 'gaz', 'electricite', 'veolia'],
+  Eau: ['eau', 'veolia'],
   Restaurants: ['restaurant', 'resto', 'boulangerie', 'starbucks', 'mcdonald', 'burger', 'sushi', 'paul', 'pizza', 'brasserie', 'bar', 'cafe'],
   Abonnements: ['netflix', 'spotify', 'disney', 'apple', 'amazon prime', 'canal', 'molotov', 'adobe', 'figma', 'github', 'icloud', 'free', 'sfr', 'orange', 'bouygues'],
-  Logement: ['loyer', 'copropriete', 'syndic', 'ikea', 'leroy', 'castorama', 'bricorama', 'meuble'],
+  Logement: ['ikea', 'leroy', 'castorama', 'bricorama', 'meuble'],
   Loyer: ['loyer', 'copropriete', 'syndic'],
-  Santé: ['pharmacie', 'medecin', 'dentiste', 'optique', 'mutuelle', 'hopital', 'kine', 'laboratoire', 'doctolib'],
+  Santé: ['medecin', 'dentiste', 'optique', 'mutuelle', 'hopital', 'kine', 'laboratoire', 'doctolib'],
+  Pharmacie: ['pharmacie'],
   Cadeaux: ['cadeau', 'anniversaire', 'noel', 'fleurs', 'bijou']
 }
 
@@ -52,81 +56,82 @@ function detectCategoryFromLabel(label: string): string | null {
 
 const amountStr = ref('')
 const showNotes = ref(false)
-const categoryAuto = ref(true)
+const recurringAuto = ref(true)
 const dateMode = ref<'yesterday' | 'today' | 'custom'>('today')
 
-// initialise UI state from existing transaction (edit mode)
 watch(() => props.transaction, (tx) => {
   if (tx) {
     amountStr.value = tx.amount > 0 ? tx.amount.toFixed(2).replace('.', ',') : ''
     showNotes.value = !!tx.notes
-    categoryAuto.value = false
+    recurringAuto.value = false
     const today = new Date().toISOString().slice(0, 10)
     dateMode.value = tx.date === today ? 'today' : 'custom'
   } else {
     amountStr.value = ''
     showNotes.value = false
-    categoryAuto.value = true
+    recurringAuto.value = true
     dateMode.value = 'today'
   }
 }, { immediate: true })
 
-// keep state.amount in sync with the keypad input
 watch(amountStr, (v) => {
   const num = parseFloat(v.replace(',', '.'))
   state.amount = Number.isFinite(num) ? num : undefined
 })
 
-// auto-detect category from label
+// auto-detect category from label, then pick the first active recurring entry of that category
 watch(() => state.label, (label) => {
-  if (!categoryAuto.value || !label) return
+  if (!recurringAuto.value || !label) return
   const detected = detectCategoryFromLabel(label)
   if (!detected) return
-  const match = filteredCategoryOptions.value.find(o => o.label.toLowerCase().includes(detected.toLowerCase()))
+  const matchedCategory = categories.value.find(c => c.name.toLowerCase() === detected.toLowerCase())
+  if (!matchedCategory) return
+  const match = filteredRecurringOptions.value.find(o => o.categoryId === matchedCategory.id)
   if (match) state.recurringEntryId = match.value
 })
 
-// derived
 const numAmount = computed(() => parseFloat(amountStr.value.replace(',', '.')) || 0)
 const valid = computed(() => numAmount.value > 0 && (state.label?.trim().length ?? 0) > 0)
 
-const categoriesForType = computed(() => filteredCategoryOptions.value.slice(0, 10))
-const currentCategory = computed(() => {
-  return filteredCategoryOptions.value.find(o => o.value === state.recurringEntryId) ?? null
+const currentOption = computed<RecurringEntryOption | null>(() => {
+  return filteredRecurringOptions.value.find(o => o.value === state.recurringEntryId) ?? null
 })
 
-const detectedCategory = computed(() => {
-  if (!state.label || !categoryAuto.value) return null
+const currentCategory = computed<Category | null>(() => {
+  if (currentOption.value?.categoryId) return categoriesById.value.get(currentOption.value.categoryId) ?? null
+  return null
+})
+
+const detectedCategoryName = computed(() => {
+  if (!state.label || !recurringAuto.value) return null
   return detectCategoryFromLabel(state.label)
 })
 
-const categoryColor = computed(() => {
-  if (currentCategory.value) {
-    return getCategoryStyle(currentCategory.value.label).color
-  }
-  if (detectedCategory.value) return getCategoryStyle(detectedCategory.value).color
-  return '#6B7489'
+const detectedCategory = computed<Category | null>(() => {
+  if (!detectedCategoryName.value) return null
+  return categories.value.find(c => c.name.toLowerCase() === detectedCategoryName.value!.toLowerCase()) ?? null
 })
 
-const categoryIcon = computed(() => {
-  if (currentCategory.value) return getCategoryStyle(currentCategory.value.label).icon
-  if (detectedCategory.value) return getCategoryStyle(detectedCategory.value).icon
-  return 'i-lucide-tag'
-})
+const displayCategory = computed<Category | null>(() => currentCategory.value ?? detectedCategory.value)
+
+const previewIcon = computed(() => displayCategory.value?.icon ?? 'i-lucide-tag')
+const previewColor = computed(() => displayCategory.value?.color ?? '#6B7489')
 
 const previewLabel = computed(() => state.label?.trim() || (state.type === 'income' ? 'Nouveau revenu' : 'Nouvelle dépense'))
 const previewMeta = computed(() => {
-  const cat = currentCategory.value?.label ?? 'Non catégorisé'
+  const cat = displayCategory.value?.name ?? 'Non catégorisé'
   const dateLabel = dateMode.value === 'today' ? 'Aujourd\'hui' : dateMode.value === 'yesterday' ? 'Hier' : new Date(state.date ?? '').toLocaleDateString('fr-FR')
   return `${cat} · ${dateLabel}`
 })
 
 const recents = computed(() => {
   return (existingLabels.value ?? []).slice(0, 4).map((label) => {
+    const detected = detectCategoryFromLabel(label)
+    const cat = detected ? categories.value.find(c => c.name.toLowerCase() === detected.toLowerCase()) ?? null : null
     return {
       label,
-      cat: detectCategoryFromLabel(label),
-      style: getCategoryStyle(detectCategoryFromLabel(label) ?? null)
+      cat: detected,
+      style: { color: cat?.color ?? '#6B7489', icon: cat?.icon ?? 'i-lucide-tag' }
     }
   })
 })
@@ -147,9 +152,7 @@ function pressKey(k: string) {
     amountStr.value = amountStr.value === '' ? '0,' : amountStr.value + ','
     return
   }
-  // digits
   let next = amountStr.value + k
-  // limit to 2 decimals
   const parts = next.split(',')
   if (parts.length === 2 && (parts[1]?.length ?? 0) > 2) {
     next = parts[0] + ',' + parts[1]!.slice(0, 2)
@@ -159,12 +162,12 @@ function pressKey(k: string) {
 
 function pickRecent(label: string) {
   state.label = label
-  categoryAuto.value = true
+  recurringAuto.value = true
 }
 
-function pickCategory(value: number) {
+function pickRecurring(value: number) {
   state.recurringEntryId = value
-  categoryAuto.value = false
+  recurringAuto.value = false
 }
 
 function setType(t: 'expense' | 'income') {
@@ -191,7 +194,6 @@ function commitCustomDate(value: string) {
 
 async function save() {
   if (!valid.value) return
-  // recurringEntry sets the type via the watch in init; just submit
   await onSubmit({
     data: {
       label: state.label!,
@@ -306,9 +308,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
           <div class="tf-tx-section">
             <div class="tf-tx-label">
               <span>Libellé</span>
-              <span v-if="detectedCategory && categoryAuto" class="tf-tx-detected">
-                <span class="dot" :style="{ background: getCategoryStyle(detectedCategory).color }" />
-                détecté : {{ detectedCategory }}
+              <span v-if="detectedCategory && recurringAuto" class="tf-tx-detected">
+                <span class="dot" :style="{ background: detectedCategory.color }" />
+                détecté : {{ detectedCategory.name }}
               </span>
             </div>
             <div class="tf-tx-input-wrap">
@@ -349,15 +351,15 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             </div>
           </div>
 
-          <!-- Category -->
-          <div v-if="categoriesForType.length > 0" class="tf-tx-section">
+          <!-- Recurring entry selector -->
+          <div v-if="filteredRecurringOptions.length > 0" class="tf-tx-section">
             <div class="tf-tx-label">
-              <span>Catégorie</span>
+              <span>Entrée récurrente</span>
               <button
-                v-if="!categoryAuto"
+                v-if="!recurringAuto"
                 type="button"
                 class="tf-tx-mini-link"
-                @click="categoryAuto = true; state.recurringEntryId = null"
+                @click="recurringAuto = true; state.recurringEntryId = null"
               >
                 <UIcon name="i-lucide-refresh-cw" class="size-2.5" />
                 auto
@@ -365,22 +367,23 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             </div>
             <div class="tf-tx-cat-grid">
               <button
-                v-for="c in categoriesForType"
-                :key="c.value ?? c.label"
+                v-for="o in filteredRecurringOptions.slice(0, 12)"
+                :key="o.value"
                 type="button"
                 class="tf-tx-cat"
-                :class="state.recurringEntryId === c.value ? 'active' : ''"
-                :style="state.recurringEntryId === c.value ? {
-                  color: getCategoryStyle(c.label).color,
-                  borderColor: `${getCategoryStyle(c.label).color}60`,
-                  background: `${getCategoryStyle(c.label).color}14`
+                :class="state.recurringEntryId === o.value ? 'active' : ''"
+                :style="state.recurringEntryId === o.value && o.categoryId ? {
+                  color: categoriesById.get(o.categoryId)?.color,
+                  borderColor: `${categoriesById.get(o.categoryId)?.color}60`,
+                  background: `${categoriesById.get(o.categoryId)?.color}14`
                 } : {}"
-                @click="pickCategory(c.value!)"
+                :title="o.categoryName ? `${o.label} — ${o.categoryName}` : o.label"
+                @click="pickRecurring(o.value)"
               >
-                <span class="cat-ico" :style="state.recurringEntryId === c.value ? {} : { color: getCategoryStyle(c.label).color }">
-                  <UIcon :name="getCategoryStyle(c.label).icon" class="size-3.5" />
+                <span class="cat-ico" :style="state.recurringEntryId === o.value ? {} : { color: o.categoryId ? categoriesById.get(o.categoryId)?.color : '#6B7489' }">
+                  <UIcon :name="o.categoryId ? (categoriesById.get(o.categoryId)?.icon ?? 'i-lucide-tag') : 'i-lucide-tag'" class="size-3.5" />
                 </span>
-                <span>{{ c.label }}</span>
+                <span>{{ o.label }}</span>
               </button>
             </div>
           </div>
@@ -458,9 +461,9 @@ onUnmounted(() => window.removeEventListener('keydown', onKeydown))
             <div class="tf-tx-preview-row">
               <div
                 class="tf-tx-preview-ico"
-                :style="{ color: categoryColor, background: `${categoryColor}14`, borderColor: `${categoryColor}33` }"
+                :style="{ color: previewColor, background: `${previewColor}14`, borderColor: `${previewColor}33` }"
               >
-                <UIcon :name="categoryIcon" class="size-3.5" />
+                <UIcon :name="previewIcon" class="size-3.5" />
               </div>
               <div class="tf-tx-preview-body">
                 <div class="tf-tx-preview-label">

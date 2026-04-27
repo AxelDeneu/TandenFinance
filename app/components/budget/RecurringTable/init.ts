@@ -1,10 +1,10 @@
 import { h } from 'vue'
 import type { TableColumn } from '@nuxt/ui'
 import { getPaginationRowModel } from '@tanstack/table-core'
-import { UBadge, USwitch } from '#components'
+import { USwitch, UIcon } from '#components'
 import { sortableHeader, actionsColumn } from '~/utils/table'
 import { useCrudModals } from '~/composables/useCrudModals'
-import type { RecurringEntry, EntryType } from '~/types'
+import type { RecurringEntry, EntryType, Category } from '~/types'
 
 interface BudgetRecurringTableContext {
   props: { type: EntryType }
@@ -34,6 +34,17 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
     lazy: true
   })
 
+  const { data: categories } = useFetch<Category[]>('/api/budget/categories', {
+    lazy: true,
+    default: () => []
+  })
+
+  const categoriesById = computed(() => {
+    const map = new Map<number, Category>()
+    for (const c of categories.value) map.set(c.id, c)
+    return map
+  })
+
   const {
     editingEntry, editModalOpen,
     deletingEntry, deleteModalOpen,
@@ -57,10 +68,6 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
     }
   }
 
-  const categoryColors = computed(() => {
-    return ctx.props.type === 'income' ? INCOME_CATEGORY_COLORS : EXPENSE_CATEGORY_COLORS
-  })
-
   const columns: TableColumn<RecurringEntry>[] = [
     {
       accessorKey: 'label',
@@ -77,14 +84,29 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
       }
     },
     {
-      accessorKey: 'category',
+      accessorKey: 'categoryId',
       header: 'Catégorie',
       filterFn: 'equals',
       cell: ({ row }) => {
-        if (!row.original.category) return h('span', { class: 'text-muted' }, '-')
-        const color: UiColor = categoryColors.value[row.original.category] || 'neutral'
+        const cat = row.original.categoryId ? categoriesById.value.get(row.original.categoryId) : null
+        if (!cat) return h('span', { class: 'text-muted' }, row.original.category ?? '-')
 
-        return h(UBadge, { variant: 'subtle', color }, () => row.original.category)
+        return h(
+          'span',
+          {
+            class: 'inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md text-xs font-medium',
+            style: {
+              color: cat.color,
+              borderColor: `${cat.color}40`,
+              background: `${cat.color}12`,
+              border: '1px solid'
+            }
+          },
+          [
+            h(UIcon, { name: cat.icon, class: 'size-3' }),
+            cat.name
+          ]
+        )
       }
     },
     {
@@ -107,12 +129,12 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
     actionsColumn<RecurringEntry>({ onEdit: openEditModal, onDelete: openDeleteModal })
   ]
 
-  const categoryFilter = ref('all')
+  const categoryFilter = ref<number | 'all'>('all')
 
   watch(() => categoryFilter.value, (newVal) => {
     if (!table?.value?.tableApi) return
 
-    const categoryColumn = table.value.tableApi.getColumn('category')
+    const categoryColumn = table.value.tableApi.getColumn('categoryId')
     if (!categoryColumn) return
 
     if (newVal === 'all') {
@@ -132,10 +154,12 @@ export function initBudgetRecurringTable(ctx: BudgetRecurringTableContext) {
   })
 
   const categoryItems = computed(() => {
-    const cats = ctx.props.type === 'income' ? INCOME_CATEGORIES : EXPENSE_CATEGORIES
+    const filterType = ctx.props.type === 'income' ? 'income' : 'expense'
     return [
-      { label: 'Toutes', value: 'all' },
-      ...cats.map(c => ({ label: c, value: c }))
+      { label: 'Toutes', value: 'all' as const },
+      ...categories.value
+        .filter(c => c.type === filterType)
+        .map(c => ({ label: c.name, value: c.id }))
     ]
   })
 
