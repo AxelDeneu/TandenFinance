@@ -22,7 +22,7 @@ export const transactionAnalyticsSelect = {
 export interface TransactionFingerprintSource {
   date: string
   label: string
-  amount: number | string
+  amount: number
 }
 
 export function buildTransactionFingerprint(source: TransactionFingerprintSource): string {

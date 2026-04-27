@@ -48,7 +48,7 @@ export default defineApiHandler(async (event) => {
   if (newTransactions.length > 0) {
     const values = newTransactions.map(tx => ({
       label: tx.label,
-      amount: String(tx.amount),
+      amount: tx.amount,
       type: tx.type as 'income' | 'expense',
       date: tx.date,
       recurringEntryId: tx.recurringEntryId ?? null,
