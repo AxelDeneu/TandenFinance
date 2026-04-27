@@ -5,7 +5,8 @@
       "name": "Nuxt dev",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["nuxt", "dev"],
-      "port": 3000
+      "port": 3000,
+      "autoPort": true
     }
   ]
 }
