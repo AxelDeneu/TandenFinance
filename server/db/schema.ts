@@ -48,30 +48,8 @@ export const transactions = pgTable('transactions', {
   updatedAt: timestamp('updated_at').notNull()
 })
 
-export const budgetRules = pgTable('budget_rules', {
-  id: serial().primaryKey(),
-  label: text().notNull(),
-  type: text({ enum: ['envelope_exceeded', 'remaining_low', 'category_threshold'] }).notNull(),
-  config: text().notNull(),
-  active: boolean().notNull().default(true),
-  createdAt: timestamp('created_at').notNull(),
-  updatedAt: timestamp('updated_at').notNull()
-})
-
 export const appSettings = pgTable('app_settings', {
   key: text().primaryKey(),
   value: text().notNull(),
   updatedAt: timestamp('updated_at').notNull()
-})
-
-export const notifications = pgTable('notifications', {
-  id: serial().primaryKey(),
-  ruleId: integer('rule_id').references(() => budgetRules.id, { onDelete: 'cascade' }),
-  title: text().notNull(),
-  body: text().notNull(),
-  icon: text(),
-  color: text(),
-  read: boolean().notNull().default(false),
-  actionUrl: text('action_url'),
-  createdAt: timestamp('created_at').notNull()
 })

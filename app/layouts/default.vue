@@ -5,6 +5,8 @@ import type { Transaction } from '~/types'
 const router = useRouter()
 const route = useRoute()
 
+useDashboard()
+
 const open = ref(false)
 const collapsed = ref(true)
 let collapseTimer: ReturnType<typeof setTimeout>
@@ -29,8 +31,7 @@ const budgetChildren = [
   { label: 'Comptabilité', icon: 'i-lucide-receipt', to: '/budget/comptabilite' },
   { label: 'Prévisionnel', icon: 'i-lucide-calendar-range', to: '/budget/previsionnel' },
   { label: 'Historique', icon: 'i-lucide-history', to: '/budget/historique' },
-  { label: 'Analyse', icon: 'i-lucide-bar-chart-3', to: '/budget/analyse' },
-  { label: 'Alertes', icon: 'i-lucide-bell', to: '/budget/alertes' }
+  { label: 'Analyse', icon: 'i-lucide-bar-chart-3', to: '/budget/analyse' }
 ]
 
 const links = computed<NavigationMenuItem[]>(() => [{
@@ -231,7 +232,5 @@ const groups = computed<SearchGroup[]>(() => {
     />
 
     <slot />
-
-    <NotificationsSlideover />
   </UDashboardGroup>
 </template>

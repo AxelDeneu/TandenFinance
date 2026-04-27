@@ -33,15 +33,6 @@ export const createTransactionSchema = z.object({
 
 export const updateTransactionSchema = createTransactionSchema.partial()
 
-export const createRuleSchema = z.object({
-  label: z.string().min(2).max(255),
-  type: z.enum(['envelope_exceeded', 'remaining_low', 'category_threshold']),
-  config: z.string().min(2),
-  active: z.boolean().optional().default(true)
-})
-
-export const updateRuleSchema = createRuleSchema.partial()
-
 export const confirmImportSchema = z.object({
   filename: z.string().min(1),
   transactions: z.array(z.object({
