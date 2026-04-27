@@ -23,8 +23,5 @@ export default defineApiHandler(async (event) => {
     })
     .returning(transactionListSelect)
 
-  // Déclencher l'évaluation des règles en arrière-plan (fire-and-forget)
-  evaluateBudgetRules().catch(console.error)
-
   return result
 })

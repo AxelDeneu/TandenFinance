@@ -6,8 +6,7 @@ const titles: Record<string, string> = {
   '/budget/comptabilite': 'Comptabilité',
   '/budget/previsionnel': 'Prévisionnel',
   '/budget/historique': 'Historique',
-  '/budget/analyse': 'Analyse',
-  '/budget/alertes': 'Alertes'
+  '/budget/analyse': 'Analyse'
 }
 
 const title = computed(() => titles[route.path] ?? 'Budget')
