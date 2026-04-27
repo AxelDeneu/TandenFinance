@@ -15,7 +15,7 @@ export const recurringEntries = pgTable('recurring_entries', {
   id: serial().primaryKey(),
   type: text({ enum: ['income', 'expense', 'envelope'] }).notNull(),
   label: text().notNull(),
-  amount: numeric({ precision: 12, scale: 2 }).notNull(),
+  amount: numeric({ precision: 12, scale: 2, mode: 'number' }).notNull(),
   category: text(),
   categoryId: integer('category_id').references(() => categories.id, { onDelete: 'set null' }),
   dayOfMonth: integer('day_of_month'),
@@ -37,7 +37,7 @@ export const importBatches = pgTable('import_batches', {
 export const transactions = pgTable('transactions', {
   id: serial().primaryKey(),
   label: text().notNull(),
-  amount: numeric({ precision: 12, scale: 2 }).notNull(),
+  amount: numeric({ precision: 12, scale: 2, mode: 'number' }).notNull(),
   type: text({ enum: ['income', 'expense'] }).notNull(),
   date: text().notNull(),
   recurringEntryId: integer('recurring_entry_id').references(() => recurringEntries.id, { onDelete: 'set null' }),

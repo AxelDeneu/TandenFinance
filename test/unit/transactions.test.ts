@@ -28,7 +28,7 @@ describe('buildTransactionFingerprint', () => {
     const b = buildTransactionFingerprint({
       date: '2026-04-01',
       label: 'carrefour',
-      amount: '12.30'
+      amount: 12.30
     })
 
     expect(a).toBe(b)
@@ -39,7 +39,7 @@ describe('buildTransactionFingerprintSet', () => {
   it('deduplicates transactions using date + label + amount only', () => {
     const fingerprints = buildTransactionFingerprintSet([
       { date: '2026-04-01', label: 'Salaire', amount: 2500 },
-      { date: '2026-04-01', label: ' salaire ', amount: '2500.00' },
+      { date: '2026-04-01', label: ' salaire ', amount: 2500.00 },
       { date: '2026-04-02', label: 'Salaire', amount: 2500 }
     ])
 
